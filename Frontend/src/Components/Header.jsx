@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import logo from "./logo.png";
+import { GraduationCap } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
@@ -15,7 +15,7 @@ const Header = () => {
   return (
     <header className="flex justify-between items-center px-10 py-4 bg-white shadow-md">
       <div className="flex items-center gap-2">
-        <img src={logo} alt="logo" className="h-7 w-7" />
+        <GraduationCap color="blue" />
         <span className="text-lg font-bold text-gray-900">AcademicHub</span>
       </div>
 
@@ -27,9 +27,7 @@ const Header = () => {
               key={item.name}
               to={item.path}
               className={`relative text-sm font-medium py-2 px-3 transition-colors ${
-                isActive
-                  ? "text-blue-600"
-                  : "text-gray-800 hover:text-blue-600"
+                isActive ? "text-blue-600" : "text-gray-800 hover:text-blue-600"
               }`}
             >
               {item.name}
