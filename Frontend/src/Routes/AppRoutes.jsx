@@ -5,10 +5,12 @@ import Dashboard from "../Pages/Dashboard";
 import Profile from "../Pages/Profile";
 import Mentors from "../Pages/Mentors";
 import Notifications from "../Pages/Notifications";
+import Register from "../Pages/Register";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/register" element={<Register />} />
       <Route path="/" element={<AppLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="/mentors" element={<Mentors />} />
