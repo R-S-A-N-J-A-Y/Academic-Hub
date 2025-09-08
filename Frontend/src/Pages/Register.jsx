@@ -9,6 +9,9 @@ const Register = () => {
     password: "",
     role: "Select Role",
     batch: "Select batch",
+    enrollment_no: "",
+    department: "",
+    designation: "",
   });
 
   const roleData = ["Student", "Guide", "Admin"];
@@ -32,10 +35,10 @@ const Register = () => {
   };
 
   return (
-    <section className="bg-green-200 h-dvh flex items-center justify-end p-25">
-      <section className="flex items-center w-[32rem] border rounded-3xl p-6 bg-white shadow-lg">
+    <section className="bg-green-200 h-dvh p-25 bg-[url('/register.png')]">
+      <section className="absolute end-10 top-40 flex items-center w-[32rem] border rounded-3xl p-6 bg-white shadow-lg">
         <form className="flex flex-col gap-6 w-full" onSubmit={handleSubmit}>
-          {/* Inputs */}
+          {/* Common Inputs */}
           <FloatingInput
             id="name"
             type="text"
@@ -59,24 +62,56 @@ const Register = () => {
             value={formData.password}
             onChange={handleChange}
           />
+  
+          {/* Role Dropdown */}
+          <DropDown
+            data={roleData}
+            name={formData.role}
+            setter={(value) =>
+              setFormData((prev) => ({ ...prev, role: value }))
+            }
+          />
 
-          {/* Dropdowns */}
-          <div className="flex gap-5 items-center">
-            <DropDown
-              data={roleData}
-              name={formData.role}
-              setter={(value) =>
-                setFormData((prev) => ({ ...prev, role: value }))
-              }
-            />
-            <DropDown
-              data={batchData}
-              name={formData.batch}
-              setter={(value) =>
-                setFormData((prev) => ({ ...prev, batch: value }))
-              }
-            />
-          </div>
+          {/* Dynamic Fields */}
+          {formData.role === "Student" && (
+            <>
+              <DropDown
+                data={batchData}
+                name={formData.batch}
+                setter={(value) =>
+                  setFormData((prev) => ({ ...prev, batch: value }))
+                }
+              />
+              <FloatingInput
+                id="enrollment_no"
+                type="text"
+                label="Enrollment No"
+                value={formData.enrollment_no}
+                onChange={handleChange}
+              />
+            </>
+          )}
+
+          {formData.role === "Guide" && (
+            <>
+              <FloatingInput
+                id="department"
+                type="text"
+                label="Department"
+                value={formData.department}
+                onChange={handleChange}
+              />
+              <FloatingInput
+                id="designation"
+                type="text"
+                label="Designation"
+                value={formData.designation}
+                onChange={handleChange}
+              />
+            </>
+          )}
+
+          {/* Admin has no extra fields */}
 
           {/* Submit */}
           <button

@@ -27,14 +27,14 @@ const DropDown = ({ data, name, setter }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        className="rounded-lg border-2 border-gray-200 px-5 py-2 bg-white text-gray-800 font-semibold"
+        className="rounded-lg border-2 border-gray-200 px-5 py-2 bg-white text-gray-800 font-semibold z-2"
         onClick={() => setShowMenu(!showMenu)}
       >
         {name}
       </button>
 
       {showMenu && (
-        <div className="absolute top-12 flex flex-col bg-white border border-gray-200 p-2 rounded-xl shadow-lg w-56">
+        <div className="absolute top-12 flex flex-col bg-white border border-gray-200 p-2 rounded-xl shadow-lg w-56 z-3">
           {data.map((el, index) => (
             <p
               className="w-full cursor-pointer hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg"
