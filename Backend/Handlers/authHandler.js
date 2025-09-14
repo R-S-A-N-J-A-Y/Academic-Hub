@@ -1,5 +1,8 @@
 const bcrypt = require("bcryptjs");
-const { createUser } = require("../Controllers/userController");
+const {
+  createUser,
+  authenticateUser,
+} = require("../Controllers/userController");
 const { createStudent } = require("../Controllers/studentController");
 const { createFaculty } = require("../Controllers/facultyController");
 const { getBatchId } = require("../Controllers/batchController");
@@ -59,4 +62,34 @@ const Register = async (req, res) => {
   }
 };
 
-module.exports = { Register };
+const Login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const user = await authenticateUser(email, password);
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // later you can generate JWT here
+    return res.status(200).json({
+      message: "Login successful",
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in Login:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { Register, Login };
