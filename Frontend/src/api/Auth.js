@@ -5,7 +5,7 @@ class Auth {
     return axiosInstance.post("/auth/register", payload);
   }
 
-  static async login(payload) {
+  static async Login(payload) {
     return axiosInstance.post("/auth/login", payload);
   }
 }

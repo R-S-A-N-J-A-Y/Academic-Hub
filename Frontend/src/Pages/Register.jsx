@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DropDown from "../Components/DropDown";
 import FloatingInput from "../Components/FloatingInput";
-import Auth from "../api/authUrls";
+import Auth from "../api/Auth";
 
 const Register = () => {
   const [formData, setFormData] = useState({

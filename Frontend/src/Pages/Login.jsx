@@ -1,8 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Auth from "../api/auth";
+import Auth from "../api/Auth";
 import FloatingInput from "../Components/FloatingInput";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,8 +24,9 @@ const Login = () => {
         password: formData.password,
       });
 
-      alert(res.data.message);
-      console.log("Server response:", res.data);
+      if (res.status === 200) {
+        navigate("/");
+      }
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);
       alert(error.response?.data?.error || "Something went wrong");
