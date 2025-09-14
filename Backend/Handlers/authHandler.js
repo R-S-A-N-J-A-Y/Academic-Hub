@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const {
   createUser,
   authenticateUser,
@@ -7,6 +8,8 @@ const { createStudent } = require("../Controllers/studentController");
 const { createFaculty } = require("../Controllers/facultyController");
 const { getBatchId } = require("../Controllers/batchController");
 const { getDeptId } = require("../Controllers/departmentController");
+
+const JWT_KEY = process.env.JWT_KEY;
 
 const Register = async (req, res) => {
   try {
@@ -44,7 +47,6 @@ const Register = async (req, res) => {
 
     if (role === "faculty") {
       const dept_id = await getDeptId(department);
-      console.log(dept_id, department);
       if (!dept_id || !designation) {
         return res
           .status(400)
@@ -52,6 +54,21 @@ const Register = async (req, res) => {
       }
       await createFaculty({ user_id: user.user_id, dept_id, designation });
     }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { user_id: user.user_id, role: user.role },
+      JWT_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // use "none" if frontend/backend on diff domains with https
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
 
     return res
       .status(201)
@@ -62,6 +79,7 @@ const Register = async (req, res) => {
   }
 };
 
+// ---------------- LOGIN ----------------
 const Login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -76,7 +94,21 @@ const Login = async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // later you can generate JWT here
+    // Generate JWT
+    const token = jwt.sign(
+      { user_id: user.user_id, role: user.role },
+      JWT_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // Set cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     return res.status(200).json({
       message: "Login successful",
       user: {
@@ -92,4 +124,13 @@ const Login = async (req, res) => {
   }
 };
 
-module.exports = { Register, Login };
+const Logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+  return res.status(200).json({ message: "Logged out successfully" });
+};
+
+module.exports = { Register, Login, Logout };
