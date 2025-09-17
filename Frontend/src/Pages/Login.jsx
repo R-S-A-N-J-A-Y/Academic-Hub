@@ -2,9 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Auth from "../api/Auth";
 import FloatingInput from "../Components/FloatingInput";
+import { useAuth } from "../Context/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { storeAuthData } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,6 +27,16 @@ const Login = () => {
       });
 
       if (res.status === 200) {
+        const user = res.data.user;
+
+        const userData = {
+          id: user.id,
+          role: user.role,
+          name: user.name,
+          email: user.email,
+        };
+
+        storeAuthData(userData);
         navigate("/");
       }
     } catch (error) {

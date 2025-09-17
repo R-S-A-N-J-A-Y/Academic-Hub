@@ -2,6 +2,8 @@ import { useState } from "react";
 import DropDown from "../Components/DropDown";
 import FloatingInput from "../Components/FloatingInput";
 import Auth from "../api/Auth";
+import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +16,8 @@ const Register = () => {
     department: "",
     designation: "",
   });
+  const navigate = useNavigate();
+  const { storeAuthData } = useAuth();
 
   const roleData = ["Student", "Faculty", "Admin"];
   const batchData = ["2022", "2023", "2024"];
@@ -46,6 +50,17 @@ const Register = () => {
 
       alert(res.data.message);
       console.log("Server response:", res.data);
+      const user = res.data.user;
+
+      const userData = {
+        id: user.id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+      };
+
+      storeAuthData(userData);
+      navigate("/");
     } catch (error) {
       console.error(
         "Registration error:",
