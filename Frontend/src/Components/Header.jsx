@@ -1,9 +1,12 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { GraduationCap } from "lucide-react";
+import Auth from "../api/Auth";
+import { useAuth } from "../Context/AuthContext";
 
 const Header = () => {
   const location = useLocation();
+  const { clearAuthData } = useAuth();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -11,6 +14,12 @@ const Header = () => {
     { name: "Notifications", path: "/notifications" },
     { name: "Profile", path: "/profile" },
   ];
+
+  const HandleLogout = () => {
+    Auth.Logout();
+    clearAuthData();
+    navigate("/login");
+  };
 
   return (
     <header className="flex justify-between items-center px-10 py-4 bg-white shadow-md">
@@ -37,6 +46,12 @@ const Header = () => {
             </Link>
           );
         })}
+        <button
+          onClick={HandleLogout}
+          className="cursor-pointer p-2 rounded-lg text-sm bg-red-500 text-white font-semibold shadow-md hover:bg-red-600 hover:shadow-lg transition-all duration-200"
+        >
+          Logout
+        </button>
       </nav>
     </header>
   );

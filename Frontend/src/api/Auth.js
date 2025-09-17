@@ -8,6 +8,10 @@ class Auth {
   static async Login(payload) {
     return axiosInstance.post("/auth/login", payload);
   }
+
+  static async Logout() {
+    return axiosInstance.post("/auth/logout");
+  }
 }
 
 export default Auth;
