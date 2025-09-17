@@ -3,6 +3,7 @@ import { useState } from "react";
 import Auth from "../api/Auth";
 import FloatingInput from "../Components/FloatingInput";
 import { useAuth } from "../Context/AuthContext";
+import Toaster from "../Components/Toaster";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [toastVisible, setToastVisible] = useState(false);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -19,6 +21,7 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setToastVisible(true);
 
     try {
       const res = await Auth.Login({
@@ -37,6 +40,7 @@ const Login = () => {
         };
 
         storeAuthData(userData);
+        setTimeout(() => setToastVisible(false), 3500);
         navigate("/");
       }
     } catch (error) {
@@ -47,6 +51,7 @@ const Login = () => {
 
   return (
     <section className="relative h-screen w-full flex bg-gradient-to-b from-purple-500 to-blue-800">
+      <Toaster message="Authentication in backend" visible={toastVisible} />
       {/* Left section (Form now on the left) */}
       <div className="flex flex-col justify-center rounded-r-[5rem] items-center w-full md:w-2/3 bg-white p-12 shadow-xl">
         <div className="w-full max-w-md">
