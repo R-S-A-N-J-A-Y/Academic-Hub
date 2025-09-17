@@ -2,13 +2,17 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Auth from "../api/Auth";
 import FloatingInput from "../Components/FloatingInput";
+import { useAuth } from "../Context/AuthContext";
+import Toaster from "../Components/Toaster";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { storeAuthData } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [toastVisible, setToastVisible] = useState(false);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -17,6 +21,7 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setToastVisible(true);
 
     try {
       const res = await Auth.Login({
@@ -25,6 +30,17 @@ const Login = () => {
       });
 
       if (res.status === 200) {
+        const user = res.data.user;
+
+        const userData = {
+          id: user.id,
+          role: user.role,
+          name: user.name,
+          email: user.email,
+        };
+
+        storeAuthData(userData);
+        setTimeout(() => setToastVisible(false), 3500);
         navigate("/");
       }
     } catch (error) {
@@ -35,6 +51,7 @@ const Login = () => {
 
   return (
     <section className="relative h-screen w-full flex bg-gradient-to-b from-purple-500 to-blue-800">
+      <Toaster message="Authentication in backend" visible={toastVisible} />
       {/* Left section (Form now on the left) */}
       <div className="flex flex-col justify-center rounded-r-[5rem] items-center w-full md:w-2/3 bg-white p-12 shadow-xl">
         <div className="w-full max-w-md">
@@ -74,7 +91,7 @@ const Login = () => {
 
             {/* Submit */}
             <button
-              className="bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-600 transition"
+              className="cursor-pointer bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-600 transition"
               type="submit"
             >
               Log In

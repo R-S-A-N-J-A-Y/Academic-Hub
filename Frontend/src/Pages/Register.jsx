@@ -2,6 +2,9 @@ import { useState } from "react";
 import DropDown from "../Components/DropDown";
 import FloatingInput from "../Components/FloatingInput";
 import Auth from "../api/Auth";
+import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import Toaster from "../Components/Toaster";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +17,9 @@ const Register = () => {
     department: "",
     designation: "",
   });
+  const navigate = useNavigate();
+  const { storeAuthData } = useAuth();
+  const [toastVisible, setToastVisible] = useState(false);
 
   const roleData = ["Student", "Faculty", "Admin"];
   const batchData = ["2022", "2023", "2024"];
@@ -25,6 +31,9 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    // Show toaster when registration starts
+    setToastVisible(true);
 
     try {
       let payload = {
@@ -44,19 +53,35 @@ const Register = () => {
 
       const res = await Auth.register(payload);
 
-      alert(res.data.message);
-      console.log("Server response:", res.data);
+      const user = res.data.user;
+      const userData = {
+        id: user.id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+      };
+
+      storeAuthData(userData);
+
+      // Hide toaster after 1.5s
+      setTimeout(() => setToastVisible(false), 3500);
+
+      navigate("/");
     } catch (error) {
       console.error(
         "Registration error:",
         error.response?.data || error.message
       );
       alert(error.response?.data?.error || "Something went wrong");
+
+      // hide toaster on error
+      setToastVisible(false);
     }
   };
 
   return (
     <section className="relative h-screen w-full flex bg-gradient-to-b from-purple-500 to-blue-800">
+      <Toaster message="Creating your account" visible={toastVisible} />
       {/* Left section */}
       <div className="hidden md:flex w-1/3 bg-gradient-to-b from-purple-500 to-blue-800 text-white p-8">
         <div className="max-w-sm mt-20">
@@ -169,7 +194,7 @@ const Register = () => {
 
             {/* Submit */}
             <button
-              className="bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-600 transition"
+              className="cursor-pointer bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-600 transition"
               type="submit"
             >
               Create Account
