@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import { axiosInstance } from "../api/axiosInstance";
 
 class User {

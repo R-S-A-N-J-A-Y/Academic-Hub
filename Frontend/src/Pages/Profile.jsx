@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import User from "../api/User";
 import { useAuth } from "../Context/AuthContext";
+import Loader from "../Components/Loader";
 
 const Profile = () => {
   const [profileData, setProfileData] = useState(null);
@@ -10,12 +11,12 @@ const Profile = () => {
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const { auth } = useAuth();
-  
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -63,20 +64,22 @@ const Profile = () => {
         setPasswordData({
           currentPassword: "",
           newPassword: "",
-          confirmPassword: ""
+          confirmPassword: "",
         });
         setShowPasswordForm(false);
       }
     } catch (err) {
-      setPasswordError(err.response?.data?.message || "Failed to change password");
+      setPasswordError(
+        err.response?.data?.message || "Failed to change password"
+      );
     }
   };
 
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;
-    setPasswordData(prev => ({
+    setPasswordData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear errors when user starts typing
     if (passwordError) setPasswordError("");
@@ -84,11 +87,7 @@ const Profile = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (error) {
@@ -131,7 +130,9 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-600 mt-2">View and manage your account information</p>
+          <p className="text-gray-600 mt-2">
+            View and manage your account information
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -139,46 +140,75 @@ const Profile = () => {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center mb-6">
               <div className="bg-blue-100 p-3 rounded-full">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  className="w-8 h-8 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 ml-4">User Information</h2>
+              <h2 className="text-2xl font-bold text-gray-900 ml-4">
+                User Information
+              </h2>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
-                  <label className="text-sm font-medium text-gray-500">Full Name</label>
-                  <p className="text-lg font-semibold text-gray-900">{profileData.name}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Full Name
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {profileData.name}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
-                  <label className="text-sm font-medium text-gray-500">Email Address</label>
-                  <p className="text-lg font-semibold text-gray-900">{profileData.email}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Email Address
+                  </label>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {profileData.email}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
-                  <label className="text-sm font-medium text-gray-500">Role</label>
-                  <span className={`ms-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    isFaculty 
-                      ? 'bg-purple-100 text-purple-800' 
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {profileData.role?.charAt(0).toUpperCase() + profileData.role?.slice(1)}
+                  <label className="text-sm font-medium text-gray-500">
+                    Role
+                  </label>
+                  <span
+                    className={`ms-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      isFaculty
+                        ? "bg-purple-100 text-purple-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {profileData.role?.charAt(0).toUpperCase() +
+                      profileData.role?.slice(1)}
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                 <div className="flex-1">
-                  <label className="text-sm font-medium text-gray-500">Password</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Password
+                  </label>
                   <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">••••••••</p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      ••••••••
+                    </p>
                     <button
                       onClick={() => setShowPasswordForm(!showPasswordForm)}
                       className="text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -193,7 +223,9 @@ const Profile = () => {
             {/* Password Change Form */}
             {showPasswordForm && (
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Change Password</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Change Password
+                </h3>
                 <form onSubmit={handlePasswordChange} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -238,7 +270,9 @@ const Profile = () => {
                     <div className="text-red-600 text-sm">{passwordError}</div>
                   )}
                   {passwordSuccess && (
-                    <div className="text-green-600 text-sm">{passwordSuccess}</div>
+                    <div className="text-green-600 text-sm">
+                      {passwordSuccess}
+                    </div>
                   )}
                   <div className="flex space-x-3">
                     <button
@@ -254,7 +288,7 @@ const Profile = () => {
                         setPasswordData({
                           currentPassword: "",
                           newPassword: "",
-                          confirmPassword: ""
+                          confirmPassword: "",
                         });
                         setPasswordError("");
                         setPasswordSuccess("");
@@ -272,19 +306,38 @@ const Profile = () => {
           {/* Role-Specific Information Card */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center mb-6">
-              <div className={`p-3 rounded-full ${
-                isFaculty ? 'bg-purple-100' : 'bg-green-100'
-              }`}>
-                <svg className={`w-8 h-8 ${isFaculty ? 'text-purple-600' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div
+                className={`p-3 rounded-full ${
+                  isFaculty ? "bg-purple-100" : "bg-green-100"
+                }`}
+              >
+                <svg
+                  className={`w-8 h-8 ${
+                    isFaculty ? "text-purple-600" : "text-green-600"
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   {isFaculty ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
                   ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                    />
                   )}
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 ml-4">
-                {isFaculty ? 'Faculty Information' : 'Student Information'}
+                {isFaculty ? "Faculty Information" : "Student Information"}
               </h2>
             </div>
 
@@ -293,8 +346,12 @@ const Profile = () => {
               {profileData.department && (
                 <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-500">Department</label>
-                    <p className="text-lg font-semibold text-gray-900">{profileData.department}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Department
+                    </label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {profileData.department}
+                    </p>
                   </div>
                 </div>
               )}
@@ -303,8 +360,12 @@ const Profile = () => {
               {isFaculty && profileData.designation && (
                 <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-500">Designation</label>
-                    <p className="text-lg font-semibold text-gray-900">{profileData.designation}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Designation
+                    </label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {profileData.designation}
+                    </p>
                   </div>
                 </div>
               )}
@@ -313,8 +374,12 @@ const Profile = () => {
               {isStudent && profileData.enrollment_no && (
                 <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-500">Enrollment Number</label>
-                    <p className="text-lg font-semibold text-gray-900">{profileData.enrollment_no}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Enrollment Number
+                    </label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {profileData.enrollment_no}
+                    </p>
                   </div>
                 </div>
               )}
@@ -322,8 +387,12 @@ const Profile = () => {
               {isStudent && profileData.batch && (
                 <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-500">Batch</label>
-                    <p className="text-lg font-semibold text-gray-900">{profileData.batch}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Batch
+                    </label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {profileData.batch}
+                    </p>
                   </div>
                 </div>
               )}
@@ -331,8 +400,12 @@ const Profile = () => {
               {isStudent && profileData.batch_id && (
                 <div className="flex items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <label className="text-sm font-medium text-gray-500">Batch ID</label>
-                    <p className="text-lg font-semibold text-gray-900">{profileData.batch_id}</p>
+                    <label className="text-sm font-medium text-gray-500">
+                      Batch ID
+                    </label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {profileData.batch_id}
+                    </p>
                   </div>
                 </div>
               )}
@@ -342,14 +415,22 @@ const Profile = () => {
 
         {/* Additional Info Card */}
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Account Details</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-4">
+            Account Details
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 rounded-lg">
-              <label className="text-sm font-medium text-gray-500">User ID</label>
-              <p className="text-lg font-semibold text-gray-900">{profileData.user_id}</p>
+              <label className="text-sm font-medium text-gray-500">
+                User ID
+              </label>
+              <p className="text-lg font-semibold text-gray-900">
+                {profileData.user_id}
+              </p>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
-              <label className="text-sm font-medium text-gray-500">Account Status</label>
+              <label className="text-sm font-medium text-gray-500">
+                Account Status
+              </label>
               <span className="ms-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                 Active
               </span>
