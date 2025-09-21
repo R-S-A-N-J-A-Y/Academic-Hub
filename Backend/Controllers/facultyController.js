@@ -42,4 +42,23 @@ const getFacultyDetails = async (userId) => {
   return res.rows.length > 0 ? res.rows[0] : {};
 };
 
-module.exports = { createFaculty, fetchFaculties, getFacultyDetails };
+const getFacultyProfile = async (userId) => {
+  const query = `
+    SELECT 
+      u.user_id,
+      u.name,
+      u.email,
+      u.role,
+      f.designation,
+      d.dept_name as department
+    FROM users u
+    INNER JOIN faculty f ON u.user_id = f.user_id
+    LEFT JOIN department d ON f.dept_id = d.dept_id
+    WHERE u.user_id = $1;
+  `;
+  
+  const result = await pool.query(query, [userId]);
+  return result.rows.length > 0 ? result.rows[0] : null;
+};
+
+module.exports = { createFaculty, fetchFaculties, getFacultyDetails, getFacultyProfile };
