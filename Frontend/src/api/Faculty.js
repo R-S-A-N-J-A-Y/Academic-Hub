@@ -4,7 +4,7 @@ class Faculty {
   static async getFaculties(deptId) {
     try {
       const res = await axiosInstance.get(`/faculty/${deptId}`);
-      return res.data; // return parsed response
+      return res.data; 
     } catch (err) {
       console.error("Error fetching faculties:", err);
       throw err;

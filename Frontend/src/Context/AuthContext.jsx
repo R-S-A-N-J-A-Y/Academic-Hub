@@ -7,6 +7,10 @@ const defaultAuth = {
   role: null,
   name: null,
   email: null,
+  dept_id: null,    
+  designation: "",  
+  batch_id: null,   
+  enrollment_no: "",
 };
 
 const AuthContext = createContext();

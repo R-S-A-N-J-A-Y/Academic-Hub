@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 import FacultyCard from "../Components/FacultyCard";
 import Faculty from "../api/Faculty";
+import { useAuth } from "../Context/AuthContext";
 
 const Mentors = () => {
   const [faculties, setFaculties] = useState([]);
+  const { auth } = useAuth();
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const data = await Faculty.getFaculties(1);
+    if (auth.dept_id) {
+      Faculty.getFaculties(auth.dept_id).then((data) => {
         setFaculties(data.data);
-      } catch (err) {
-        console.log("Error", err);
-      }
-    };
-    fetch();
-  }, []);
+      });
+    }
+  }, [auth.dept_id]);
 
   return (
     <div className="py-8">
