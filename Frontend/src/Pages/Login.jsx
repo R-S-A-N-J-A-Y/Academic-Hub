@@ -37,6 +37,10 @@ const Login = () => {
           role: user.role,
           name: user.name,
           email: user.email,
+          dept_id: user.dept_id || null, // faculty only
+          designation: user.designation || "",
+          batch_id: user.batch_id || null, // student only
+          enrollment_no: user.enrollment_no || "",
         };
 
         storeAuthData(userData);

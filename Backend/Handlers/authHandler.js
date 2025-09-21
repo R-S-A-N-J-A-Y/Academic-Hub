@@ -4,8 +4,8 @@ const {
   createUser,
   authenticateUser,
 } = require("../Controllers/userController");
-const { createStudent } = require("../Controllers/studentController");
-const { createFaculty } = require("../Controllers/facultyController");
+const { createStudent, getStudentDetails } = require("../Controllers/studentController");
+const { createFaculty, getFacultyDetails } = require("../Controllers/facultyController");
 const { getBatchId } = require("../Controllers/batchController");
 const { getDeptId } = require("../Controllers/departmentController");
 
@@ -80,6 +80,7 @@ const Register = async (req, res) => {
 };
 
 // ---------------- LOGIN ----------------
+
 const Login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -89,24 +90,32 @@ const Login = async (req, res) => {
 
   try {
     const user = await authenticateUser(email, password);
-
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Generate JWT
+    // get role-specific details
+    let extraData = {};
+    if (user.role === "faculty") {
+      extraData = await getFacultyDetails(user.user_id);
+    } else if (user.role === "student") {
+      extraData = await getStudentDetails(user.user_id);
+    }
+
+    // generate JWT
     const token = jwt.sign(
       {
         user_id: user.user_id,
         role: user.role,
         name: user.name,
         email: user.email,
+        ...extraData,
       },
       JWT_KEY,
       { expiresIn: "1d" }
     );
 
-    // Set cookie
+    // set cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -118,9 +127,10 @@ const Login = async (req, res) => {
       message: "Login successful",
       user: {
         id: user.user_id,
+        role: user.role,
         name: user.name,
         email: user.email,
-        role: user.role,
+        ...extraData,
       },
     });
   } catch (error) {

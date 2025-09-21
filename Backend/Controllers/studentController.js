@@ -15,4 +15,12 @@ const createStudent = async (student) => {
   return result.rows[0];
 };
 
-module.exports = { createStudent };
+const getStudentDetails = async (userId) => {
+  const res = await pool.query(
+    "SELECT * FROM students WHERE user_id = $1",
+    [userId]
+  );
+  return res.rows.length > 0 ? res.rows[0] : {};
+};
+
+module.exports = { createStudent, getStudentDetails };
