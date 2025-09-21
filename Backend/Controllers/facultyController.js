@@ -1,4 +1,4 @@
-const pool = require("../db/dbConfig");
+﻿const pool = require("../db/dbConfig");
 
 const createFaculty = async (faculty) => {
   const { user_id, dept_id, designation } = faculty;
@@ -15,4 +15,23 @@ const createFaculty = async (faculty) => {
   return result.rows[0];
 };
 
-module.exports = { createFaculty };
+const fetchFaculties = async (deptId) => {
+  const query = `
+    SELECT 
+      f.id,
+      f.user_id,
+      f.dept_id,
+      f.designation,
+      u.name,
+      u.email
+    FROM faculty f
+    INNER JOIN users u ON f.user_id = u.user_id
+    WHERE f.dept_id = $1
+    ORDER BY u.name ASC;
+  `;
+
+  const result = await pool.query(query, [deptId]);
+  return result.rows;
+};
+
+module.exports = { createFaculty, fetchFaculties };
