@@ -4,8 +4,14 @@ const {
   createUser,
   authenticateUser,
 } = require("../Controllers/userController");
-const { createStudent, getStudentDetails } = require("../Controllers/studentController");
-const { createFaculty, getFacultyDetails } = require("../Controllers/facultyController");
+const {
+  createStudent,
+  getStudentDetails,
+} = require("../Controllers/studentController");
+const {
+  createFaculty,
+  getFacultyDetails,
+} = require("../Controllers/facultyController");
 const { getBatchId } = require("../Controllers/batchController");
 const { getDeptId } = require("../Controllers/departmentController");
 
@@ -33,20 +39,25 @@ const Register = async (req, res) => {
 
     // Create base user
     const user = await createUser({ name, email, password_hash, role });
+    const dept_id = await getDeptId(department);
 
     // Role-specific insert
     if (role === "student") {
       const batch_id = await getBatchId(batch_name);
-      if (!batch_id || !enrollment_no) {
-        return res
-          .status(400)
-          .json({ error: "Batch and enrollment_no required for students" });
+      if (!batch_id || !enrollment_no || !dept_id) {
+        return res.status(400).json({
+          error: "Batch and enrollment_no and Department required for students",
+        });
       }
-      await createStudent({ user_id: user.user_id, batch_id, enrollment_no });
+      await createStudent({
+        user_id: user.user_id,
+        batch_id,
+        enrollment_no,
+        dept_id,
+      });
     }
 
     if (role === "faculty") {
-      const dept_id = await getDeptId(department);
       if (!dept_id || !designation) {
         return res
           .status(400)
@@ -55,9 +66,23 @@ const Register = async (req, res) => {
       await createFaculty({ user_id: user.user_id, dept_id, designation });
     }
 
+    // Get role-specific extra details for response
+    let extraData = {};
+    if (role === "faculty") {
+      extraData = await getFacultyDetails(user.user_id);
+    } else if (role === "student") {
+      extraData = await getStudentDetails(user.user_id);
+    }
+
     // Generate JWT
     const token = jwt.sign(
-      { user_id: user.user_id, role: user.role },
+      {
+        user_id: user.user_id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        ...extraData,
+      },
       JWT_KEY,
       { expiresIn: "1d" }
     );
@@ -66,13 +91,20 @@ const Register = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax", // use "none" if frontend/backend on diff domains with https
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
-    return res
-      .status(201)
-      .json({ message: "User registered successfully", user });
+    return res.status(201).json({
+      message: "User registered successfully",
+      user: {
+        id: user.user_id,
+        role: user.role,
+        name: user.name,
+        email: user.email,
+        ...extraData,
+      },
+    });
   } catch (error) {
     console.error("Error in Register:", error.message);
     return res.status(500).json({ error: "Internal server error" });

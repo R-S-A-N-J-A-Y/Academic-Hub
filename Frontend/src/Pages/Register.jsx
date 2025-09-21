@@ -17,6 +17,7 @@ const Register = () => {
     department: "",
     designation: "",
   });
+
   const navigate = useNavigate();
   const { storeAuthData } = useAuth();
   const [toastVisible, setToastVisible] = useState(false);
@@ -31,8 +32,6 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Show toaster when registration starts
     setToastVisible(true);
 
     try {
@@ -41,13 +40,13 @@ const Register = () => {
         email: formData.email,
         password: formData.password,
         role: formData.role.toLowerCase(),
+        department: formData.department.toLowerCase(), // common field
       };
 
       if (formData.role === "Student") {
         payload.batch_name = formData.batch;
         payload.enrollment_no = formData.enrollment_no.toLowerCase();
       } else if (formData.role === "Faculty") {
-        payload.department = formData.department.toLowerCase();
         payload.designation = formData.designation.toLowerCase();
       }
 
@@ -59,11 +58,13 @@ const Register = () => {
         role: user.role,
         name: user.name,
         email: user.email,
+        dept_id: user.dept_id || null, // faculty only
+        designation: user.designation || "",
+        batch_id: user.batch_id || null, // student only
+        enrollment_no: user.enrollment_no || "",
       };
 
       storeAuthData(userData);
-
-      // Hide toaster after 1.5s
       setTimeout(() => setToastVisible(false), 3500);
 
       navigate("/");
@@ -73,8 +74,6 @@ const Register = () => {
         error.response?.data || error.message
       );
       alert(error.response?.data?.error || "Something went wrong");
-
-      // hide toaster on error
       setToastVisible(false);
     }
   };
@@ -82,13 +81,13 @@ const Register = () => {
   return (
     <section className="relative h-screen w-full flex bg-gradient-to-b from-purple-500 to-blue-800">
       <Toaster message="Creating your account" visible={toastVisible} />
+
       {/* Left section */}
       <div className="hidden md:flex w-1/3 bg-gradient-to-b from-purple-500 to-blue-800 text-white p-8">
         <div className="max-w-sm mt-20">
           <h1 className="p-5 text-4xl text-center font-bold">
             Your Next Big Idea Starts Here
           </h1>
-
           <h5 className="p-3 text-xl text-gray-200">
             Join a community of innovators. Register to bring your project to
             life
@@ -174,25 +173,26 @@ const Register = () => {
 
             {/* Faculty Fields */}
             {formData.role === "Faculty" && (
-              <>
-                <FloatingInput
-                  id="department"
-                  type="text"
-                  label="Department"
-                  value={formData.department}
-                  onChange={handleChange}
-                />
-                <FloatingInput
-                  id="designation"
-                  type="text"
-                  label="Designation"
-                  value={formData.designation}
-                  onChange={handleChange}
-                />
-              </>
+              <FloatingInput
+                id="designation"
+                type="text"
+                label="Designation"
+                value={formData.designation}
+                onChange={handleChange}
+              />
             )}
 
-            {/* Submit */}
+            {/* Department (common for both Student & Faculty) */}
+            {(formData.role === "Student" || formData.role === "Faculty") && (
+              <FloatingInput
+                id="department"
+                type="text"
+                label="Department"
+                value={formData.department}
+                onChange={handleChange}
+              />
+            )}
+
             <button
               className="cursor-pointer bg-indigo-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-indigo-600 transition"
               type="submit"
@@ -216,11 +216,7 @@ const Register = () => {
       <img
         src="/register.png"
         alt="illustration"
-        className="
-          hidden xl:block absolute
-          top-68 xl:left-32  
-          2xl:top-68 2xl:left-55
-        "
+        className="hidden xl:block absolute top-68 xl:left-32 2xl:top-68 2xl:left-55"
       />
     </section>
   );
