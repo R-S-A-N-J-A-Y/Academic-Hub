@@ -15,6 +15,7 @@ app.use(
 app.use("/auth", require("./Routes/authRoutes"));
 app.use("/faculty", require("./Routes/facultyRoutes"));
 app.use("/user", require("./Routes/userRoutes"));
+app.use("/projects", require("./Routes/projectRoutes"));
 
 app.get("/", (req, res) => {
   res.send("Listening...");

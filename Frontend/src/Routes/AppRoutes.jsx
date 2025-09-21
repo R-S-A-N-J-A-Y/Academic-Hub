@@ -5,6 +5,7 @@ import Dashboard from "../Pages/Dashboard";
 import Profile from "../Pages/Profile";
 import Mentors from "../Pages/Mentors";
 import Notifications from "../Pages/Notifications";
+import StudentDashboard from "../Pages/StudentDashboard";
 import Register from "../Pages/Register";
 import Login from "../Pages/Login";
 import ProtectedRoute from "./ProtectedRoutes";
@@ -19,10 +20,11 @@ const AppRoutes = () => {
       {/* Protected routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Dashboard />} />
+          <Route index element={<StudentDashboard />} />
           <Route path="/mentors" element={<Mentors />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
         </Route>
       </Route>
     </Routes>
