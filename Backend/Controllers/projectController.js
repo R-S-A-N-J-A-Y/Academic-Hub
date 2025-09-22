@@ -81,7 +81,7 @@ const createProject = async ({
   objective,
   category,
   hosted_link,
-  visibility = 'public',
+  visibility = "public",
 }) => {
   // Determine status based on guide assignment
   const status = guide_id ? "pending" : "new";
@@ -102,7 +102,7 @@ const createProject = async ({
     guide_id,
     status,
     objective ?? null,
-    category ?? 'mini',
+    category ?? "mini",
     hosted_link ?? null,
     visibility,
     0, // default likes
@@ -111,7 +111,6 @@ const createProject = async ({
   const result = await pool.query(query, values);
   return result.rows[0];
 };
-
 
 // Update project
 const updateProject = async (projectId, { title, abstract }, userId) => {
@@ -159,6 +158,18 @@ const getProjectDetails = async (projectId) => {
       t.team_id,
       g.name AS guide_name,
       g.email AS guide_email,
+      p.category AS project_type,
+      p.objective,
+      p.hosted_link,
+      p.visibility,
+      p.likes,
+      p.paper_link,
+      p.conference_name,
+      p.conference_year,
+      p.conference_status,
+      p.ispublished,
+      p.created_at,
+      p.updated_at,
       COALESCE(p.guide_status, 'NA') AS guide_status -- show NA if no guide
     FROM projects p
     LEFT JOIN users u ON p.created_by = u.user_id
@@ -240,6 +251,11 @@ const getFullProjectDetails = async (projectId, userId = null) => {
       p.hosted_link,
       p.visibility,
       p.likes,
+      COALESCE(p.ispublished, false) AS ispublished,
+      p.paper_link,
+      p.conference_name,
+      p.conference_year,
+      p.conference_status,
       p.created_by,
       p.guide_id,
       p.guide_status,
@@ -297,14 +313,14 @@ const canViewProject = async (projectId, userId) => {
     WHERE p.project_id = $1;
   `;
   const result = await pool.query(query, [projectId, userId]);
-  
+
   if (!result.rows.length) return false;
-  
+
   const project = result.rows[0];
-  
+
   // Public projects can be viewed by anyone
-  if (project.visibility === 'public') return true;
-  
+  if (project.visibility === "public") return true;
+
   // Private projects can only be viewed by creator, team members, or guide
   return (
     project.created_by === userId ||
@@ -323,8 +339,11 @@ const updateProjectFull = async (projectId, updateData, userId) => {
     LEFT JOIN team_members tm ON t.team_id = tm.team_id
     WHERE p.project_id = $1 AND (p.created_by = $2 OR tm.user_id = $2)
   `;
-  const permissionResult = await pool.query(permissionQuery, [projectId, userId]);
-  
+  const permissionResult = await pool.query(permissionQuery, [
+    projectId,
+    userId,
+  ]);
+
   if (!permissionResult.rows.length) {
     throw new Error("Unauthorized to update this project");
   }
@@ -335,15 +354,51 @@ const updateProjectFull = async (projectId, updateData, userId) => {
     [projectId]
   );
   const currentStatus = statusResult.rows[0].status;
-  
+
   // Allow status updates only if current status is not 'completed'
   // If updating status to 'completed', allow it regardless
-  if (updateData.status && updateData.status !== 'completed' && currentStatus === 'completed') {
+  if (
+    updateData.status &&
+    updateData.status !== "completed" &&
+    currentStatus === "completed"
+  ) {
     throw new Error("Cannot edit completed projects");
   }
 
-  const { title, abstract, objective, category, status, hosted_link, visibility } = updateData;
-  
+  const {
+    title,
+    abstract,
+    objective,
+    category,
+    status,
+    hosted_link,
+    visibility,
+    ispublished,
+    paper_link,
+    conference_name,
+    conference_year,
+    conference_status,
+  } = updateData;
+
+  // Normalize values to avoid invalid casts (e.g., empty string to integer)
+  const normalizedIsPublished =
+    typeof ispublished === "boolean"
+      ? ispublished
+      : ispublished === undefined
+      ? null
+      : Boolean(ispublished);
+  const normalizedPaperLink = paper_link === "" ? null : paper_link ?? null;
+  const normalizedConferenceName =
+    conference_name === "" ? null : conference_name ?? null;
+  const normalizedConferenceYear =
+    conference_year === "" ||
+    conference_year === undefined ||
+    conference_year === null
+      ? null
+      : Number(conference_year);
+  const normalizedConferenceStatus =
+    conference_status === "" ? null : conference_status ?? null;
+
   const updateQuery = `
     UPDATE projects 
     SET 
@@ -354,18 +409,34 @@ const updateProjectFull = async (projectId, updateData, userId) => {
       status = COALESCE($5, status),
       hosted_link = COALESCE($6, hosted_link),
       visibility = COALESCE($7, visibility),
+      ispublished = COALESCE($8, ispublished),
+      paper_link = COALESCE($9, paper_link),
+      conference_name = COALESCE($10, conference_name),
+      conference_year = COALESCE($11, conference_year),
+      conference_status = COALESCE($12, conference_status),
       updated_at = CURRENT_TIMESTAMP
-    WHERE project_id = $8
+    WHERE project_id = $13
     RETURNING *;
   `;
-  
+
   const result = await pool.query(updateQuery, [
-    title, abstract, objective, category, status, hosted_link, visibility, projectId
+    title,
+    abstract,
+    objective,
+    category,
+    status,
+    hosted_link,
+    visibility,
+    normalizedIsPublished,
+    normalizedPaperLink,
+    normalizedConferenceName,
+    normalizedConferenceYear,
+    normalizedConferenceStatus,
+    projectId,
   ]);
 
   return result.rows[0];
 };
-
 
 // Add project review
 const addProjectReview = async (projectId, fileUrl) => {
@@ -383,8 +454,12 @@ const addProjectReview = async (projectId, fileUrl) => {
     VALUES ($1, $2, $3)
     RETURNING *;
   `;
-  
-  const result = await pool.query(insertQuery, [projectId, nextReviewNumber, fileUrl]);
+
+  const result = await pool.query(insertQuery, [
+    projectId,
+    nextReviewNumber,
+    fileUrl,
+  ]);
   return result.rows[0];
 };
 
@@ -396,7 +471,7 @@ const likeProject = async (projectId) => {
     WHERE project_id = $1
     RETURNING likes;
   `;
-  
+
   const result = await pool.query(updateQuery, [projectId]);
   return result.rows[0];
 };

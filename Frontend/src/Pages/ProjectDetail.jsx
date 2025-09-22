@@ -23,6 +23,11 @@ const ProjectDetail = () => {
     status: "",
     hosted_link: "",
     visibility: "public",
+    ispublished: false,
+    paper_link: "",
+    conference_name: "",
+    conference_year: "",
+    conference_status: "participation",
   });
   const [reviewFile, setReviewFile] = useState(null);
   const [uploadingReview, setUploadingReview] = useState(false);
@@ -46,7 +51,13 @@ const ProjectDetail = () => {
         status: p.status || "pending",
         hosted_link: p.hosted_link || "",
         visibility: p.visibility || "public",
+        ispublished: p.ispublished ?? false,
+        paper_link: p.paper_link || "",
+        conference_name: p.conference_name || "",
+        conference_year: p.conference_year ?? "",
+        conference_status: p.conference_status || "participation",
       });
+      console.log(p);
     } catch (err) {
       setError(
         err.response?.data?.message || "Failed to fetch project details"
@@ -237,6 +248,55 @@ const ProjectDetail = () => {
               >
                 {project.hosted_link}
               </a>
+            </div>
+          )}
+
+          {/* Paper Publications */}
+          {project.ispublished && (
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">
+                Paper Publications
+              </h2>
+
+              <div className="space-y-2 text-gray-700">
+                {project.paper_link && (
+                  <div>
+                    <span className="font-medium mr-2">Paper Link:</span>
+                    <a
+                      href={project.paper_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      {project.paper_link}
+                    </a>
+                  </div>
+                )}
+
+                {(project.conference_name || project.conference_year || project.conference_status) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {project.conference_name && (
+                      <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-sm">
+                        {project.conference_name}
+                      </span>
+                    )}
+                    {project.conference_year && (
+                      <span className="px-2 py-1 rounded bg-gray-100 text-gray-800 text-sm">
+                        {project.conference_year}
+                      </span>
+                    )}
+                    {project.conference_status && (
+                      <span className={`px-2 py-1 rounded text-sm ${
+                        project.conference_status === "prize"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      }`}>
+                        {project.conference_status === "prize" ? "Prize" : "Participation"}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -537,6 +597,107 @@ const ProjectDetail = () => {
                   className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400 transition shadow-sm"
                 />
               </div>
+
+              {/* Published */}
+              <div className="flex items-center gap-3">
+                <input
+                  id="ispublished"
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  checked={!!editForm.ispublished}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      ispublished: e.target.checked,
+                    }))
+                  }
+                />
+                <label htmlFor="ispublished" className="text-sm text-gray-700">
+                  Published
+                </label>
+              </div>
+
+              {editForm.ispublished ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Paper Link */}
+                  <div className="flex flex-col">
+                    <label htmlFor="paper_link" className="text-sm text-gray-700 mb-1">
+                      Paper Link
+                    </label>
+                    <input
+                      id="paper_link"
+                      type="url"
+                      placeholder="https://your-paper-link.com"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      value={editForm.paper_link ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({ ...prev, paper_link: e.target.value }))
+                      }
+                    />
+                  </div>
+
+                  {/* Conference Name */}
+                  <div className="flex flex-col">
+                    <label htmlFor="conference_name" className="text-sm text-gray-700 mb-1">
+                      Conference Name
+                    </label>
+                    <input
+                      id="conference_name"
+                      type="text"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      value={editForm.conference_name ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          conference_name: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Conference Year */}
+                  <div className="flex flex-col">
+                    <label htmlFor="conference_year" className="text-sm text-gray-700 mb-1">
+                      Conference Year
+                    </label>
+                    <input
+                      id="conference_year"
+                      type="number"
+                      min="1900"
+                      max="2100"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      value={editForm.conference_year ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          conference_year: e.target.value === "" ? "" : Number(e.target.value),
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Conference Status */}
+                  <div className="flex flex-col">
+                    <label htmlFor="conference_status" className="text-sm text-gray-700 mb-1">
+                      Conference Status
+                    </label>
+                    <select
+                      id="conference_status"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      value={editForm.conference_status ?? "participation"}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({
+                          ...prev,
+                          conference_status: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="participation">Participation</option>
+                      <option value="prize">Prize</option>
+                    </select>
+                  </div>
+                </div>
+              ) : null}
 
               {/* Review Upload */}
               <div className="pt-5 border-t flex flex-col gap-3">

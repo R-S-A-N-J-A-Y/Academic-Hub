@@ -47,17 +47,17 @@ const getMyProjects = async (req, res) => {
 const createProject = async (req, res) => {
   try {
     const { user_id } = req.user;
-    const { 
-      title, 
-      abstract, 
-      projectType, 
-      teamName, 
-      teamMembers, 
+    const {
+      title,
+      abstract,
+      projectType,
+      teamName,
+      teamMembers,
       guideId,
       objective,
       category,
       hosted_link,
-      visibility = 'public'
+      visibility = "public",
     } = req.body;
 
     // Validate required fields
@@ -87,7 +87,7 @@ const createProject = async (req, res) => {
       dept_id: userInfo.dept_id,
       guide_id: guideId ?? null,
       objective: objective ?? null,
-      category: category ?? 'mini',       // only default if undefined
+      category: category ?? "mini", // only default if undefined
       hosted_link: hosted_link ?? null,
       visibility,
     });
@@ -160,7 +160,6 @@ const createProject = async (req, res) => {
     });
   }
 };
-
 
 // Update project
 const updateProject = async (req, res) => {
@@ -333,7 +332,10 @@ const getFullProjectDetails = async (req, res) => {
     }
 
     // Get project details
-    const project = await projectController.getFullProjectDetails(projectId, user_id);
+    const project = await projectController.getFullProjectDetails(
+      projectId,
+      user_id
+    );
     if (!project) {
       return res.status(404).json({
         success: false,
@@ -368,25 +370,33 @@ const getFullProjectDetails = async (req, res) => {
             name: project.created_by_name,
             email: project.created_by_email,
           },
-          guide: project.guide_name ? {
-            name: project.guide_name,
-            email: project.guide_email,
-          } : null,
-          team_members: teamMembers.map(member => ({
+          guide: project.guide_name
+            ? {
+                name: project.guide_name,
+                email: project.guide_email,
+              }
+            : null,
+          team_members: teamMembers.map((member) => ({
             user_id: member.user_id,
             name: member.name,
             email: member.email,
             role_in_team: member.role_in_team,
           })),
-          reviews: reviews.map(review => ({
+          reviews: reviews.map((review) => ({
             review_number: review.review_number,
             file_url: review.file_url,
             created_at: review.created_at,
           })),
+          ispublished: project.ispublished, // new
+          paper_link: project.paper_link || "", // new
+          conference_name: project.conference_name || null, // new
+          conference_year: project.conference_year || null, // new
+          conference_status: project.conference_status || "participation", // new
           created_at: project.created_at,
           updated_at: project.updated_at,
         },
       },
+
       message: "Project details fetched successfully",
     });
   } catch (error) {
@@ -404,11 +414,37 @@ const updateProjectFull = async (req, res) => {
   try {
     const { user_id } = req.user;
     const { projectId } = req.params;
-    const { title, abstract, objective, category, status, hosted_link, visibility } = req.body;
+    const {
+      title,
+      abstract,
+      objective,
+      category,
+      status,
+      hosted_link,
+      visibility,
+      ispublished,
+      paper_link,
+      conference_name,
+      conference_year,
+      conference_status,
+    } = req.body;
 
     const updatedProject = await projectController.updateProjectFull(
       projectId,
-      { title, abstract, objective, category, status, hosted_link, visibility },
+      {
+        title,
+        abstract,
+        objective,
+        category,
+        status,
+        hosted_link,
+        visibility,
+        ispublished,
+        paper_link,
+        conference_name,
+        conference_year,
+        conference_status,
+      },
       user_id
     );
 
@@ -439,7 +475,10 @@ const uploadProjectReview = async (req, res) => {
       });
     }
 
-    const review = await projectController.addProjectReview(projectId, file_url);
+    const review = await projectController.addProjectReview(
+      projectId,
+      file_url
+    );
 
     res.status(201).json({
       success: true,

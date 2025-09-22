@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import FacultyCard from "../Components/FacultyCard";
+import { useNavigate } from "react-router-dom";
 import Faculty from "../api/Faculty";
 import { useAuth } from "../Context/AuthContext";
 import Loader from "../Components/Loader";
@@ -8,6 +9,7 @@ const Mentors = () => {
   const [faculties, setFaculties] = useState([]);
   const { auth } = useAuth();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFaculties = async () => {
@@ -36,7 +38,13 @@ const Mentors = () => {
       <h2 className="text-2xl font-bold text-center mb-8">Meet Our Guides</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
         {faculties.map((f) => (
-          <FacultyCard key={f.id} name={f.name} image="/image.jpeg" />
+          <div
+            key={f.id}
+            onClick={() => navigate(`/mentors/${f.user_id}`)}
+            className="cursor-pointer"
+          >
+            <FacultyCard name={f.name} image="/image.jpeg" />
+          </div>
         ))}
       </div>
     </div>

@@ -8,6 +8,7 @@ import Notifications from "../Pages/Notifications";
 import Register from "../Pages/Register";
 import Login from "../Pages/Login";
 import ProjectDetail from "../Pages/ProjectDetail";
+import MentorDetail from "../Pages/MentorDetail";
 import ProtectedRoute from "./ProtectedRoutes";
 
 const AppRoutes = () => {
@@ -22,6 +23,7 @@ const AppRoutes = () => {
         <Route path="/" element={<AppLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="/mentors" element={<Mentors />} />
+          <Route path="/mentors/:id" element={<MentorDetail />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
