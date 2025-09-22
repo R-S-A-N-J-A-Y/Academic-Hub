@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Project from "../api/Project";
 import { useAuth } from "../Context/AuthContext";
 import Loader from "../Components/Loader";
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("all-projects");
   const [allProjects, setAllProjects] = useState([]);
   const [myProjects, setMyProjects] = useState([]);
@@ -21,6 +23,10 @@ const StudentDashboard = () => {
     teamName: "",
     teamMembers: [],
     guideId: "",
+    objective: "",
+    category: "mini",
+    hosted_link: "",
+    visibility: "public",
   });
 
   const [teamMemberEmail, setTeamMemberEmail] = useState("");
@@ -87,8 +93,12 @@ const StudentDashboard = () => {
         teamMembers:
           projectForm.projectType === "team" ? projectForm.teamMembers : [],
         guideId: projectForm.guideId || null,
+        objective: projectForm.objective || null,
+        category: projectForm.category || 'mini',
+        hosted_link: projectForm.hosted_link || null,
+        visibility: projectForm.visibility || 'public',
       };
-
+  
       await Project.createProject(projectData);
       setShowCreateModal(false);
       resetForm();
@@ -97,6 +107,7 @@ const StudentDashboard = () => {
       setError(err.response?.data?.message || "Failed to create project");
     }
   };
+  
 
   const handleDeleteProject = async (projectId) => {
     if (!window.confirm("Are you sure you want to delete this project?"))
@@ -146,9 +157,8 @@ const StudentDashboard = () => {
     <div className="bg-white rounded-lg shadow">
       <div className="px-6 py-4 border-b border-gray-200">
         <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      </div><div className="overflow-x-auto md:overflow-x-visible">
+      <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -180,17 +190,20 @@ const StudentDashboard = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {projects.map((project) => (
               <tr key={project.project_id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   <div>
-                    <div className="text-sm font-medium text-gray-900">
+                    <button
+                      onClick={() => navigate(`/projects/${project.project_id}`)}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    >
                       {project.title}
-                    </div>
+                    </button>
                     <div className="text-sm text-gray-500 truncate max-w-xs">
                       {project.abstract}
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   <div className="text-sm text-gray-900">
                     {project.created_by_name}
                   </div>
@@ -198,20 +211,20 @@ const StudentDashboard = () => {
                     {project.created_by_email}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   <div className="text-sm text-gray-900">
                     {project.team_name || "Solo"}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   <div className="text-sm text-gray-900">
                     {project.department || "-"}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   {getStatusBadge(project.status)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   <div className="text-sm text-gray-900">
                     {project.guide_name || "Not Assigned"}
                   </div>
@@ -224,7 +237,7 @@ const StudentDashboard = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(project.created_at).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-normal break-words">
                   <button
                     onClick={() => handleDeleteProject(project.project_id)}
                     className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 text-xs"
@@ -266,7 +279,7 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-1 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -411,6 +424,79 @@ const StudentDashboard = () => {
                       placeholder="Describe your project in detail..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Objective
+                    </label>
+                    <textarea
+                      name="objective"
+                      value={projectForm.objective}
+                      onChange={handleInputChange}
+                      rows={3}
+                      placeholder="What are the main objectives of your project?"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <select
+                      name="category"
+                      value={projectForm.category}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="mini">Mini Project</option>
+                      <option value="full">Full Project</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hosted Link
+                    </label>
+                    <input
+                      type="url"
+                      name="hosted_link"
+                      value={projectForm.hosted_link}
+                      onChange={handleInputChange}
+                      placeholder="https://your-project-link.com"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Visibility
+                    </label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="visibility"
+                          value="public"
+                          checked={projectForm.visibility === "public"}
+                          onChange={handleInputChange}
+                          className="mr-2"
+                        />
+                        Public (Visible to everyone)
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="visibility"
+                          value="private"
+                          checked={projectForm.visibility === "private"}
+                          onChange={handleInputChange}
+                          className="mr-2"
+                        />
+                        Private (Only team members and guide)
+                      </label>
+                    </div>
                   </div>
 
                   {/* Team-specific fields */}

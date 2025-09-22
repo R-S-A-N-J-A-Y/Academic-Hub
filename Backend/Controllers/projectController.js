@@ -36,33 +36,34 @@ const getAllProjects = async () => {
 // Get projects created by or assigned to a user
 const getMyProjects = async (userId) => {
   const query = `
-    SELECT DISTINCT
-      p.project_id,
-      p.title,
-      p.abstract,
-      p.type,
-      p.status,
-      COALESCE(p.guide_status, 'NA') AS guide_status, -- only guide_status defaults to 'NA'
-      p.created_at,
-      p.updated_at,
-      u.name AS created_by_name,
-      u.email AS created_by_email,
-      b.batch_name,
-      d.dept_name AS department,
-      t.team_name,
-      tm.role_in_team AS my_role,
-      g.name AS guide_name,
-      g.email AS guide_email
-    FROM projects p
-    LEFT JOIN users u ON p.created_by = u.user_id
-    LEFT JOIN batches b ON p.batch_id = b.batch_id
-    LEFT JOIN department d ON p.dept_id = d.dept_id
-    LEFT JOIN teams t ON p.project_id = t.project_id
-    LEFT JOIN team_members tm ON t.team_id = tm.team_id
-    LEFT JOIN faculty f ON p.guide_id = f.user_id
-    LEFT JOIN users g ON f.user_id = g.user_id
-    WHERE p.created_by = $1 OR tm.user_id = $1
-    ORDER BY p.created_at DESC;
+    SELECT DISTINCT ON (p.project_id)
+  p.project_id,
+  p.title,
+  p.abstract,
+  p.type,
+  p.status,
+  COALESCE(p.guide_status, 'NA') AS guide_status,
+  p.created_at,
+  p.updated_at,
+  u.name AS created_by_name,
+  u.email AS created_by_email,
+  b.batch_name,
+  d.dept_name AS department,
+  t.team_name,
+  tm.role_in_team AS my_role,
+  g.name AS guide_name,
+  g.email AS guide_email
+FROM projects p
+LEFT JOIN users u ON p.created_by = u.user_id
+LEFT JOIN batches b ON p.batch_id = b.batch_id
+LEFT JOIN department d ON p.dept_id = d.dept_id
+LEFT JOIN teams t ON p.project_id = t.project_id
+LEFT JOIN team_members tm ON t.team_id = tm.team_id
+LEFT JOIN faculty f ON p.guide_id = f.user_id
+LEFT JOIN users g ON f.user_id = g.user_id
+WHERE p.created_by = $1 OR tm.user_id = $1
+ORDER BY p.project_id, p.created_at DESC;
+
   `;
   const result = await pool.query(query, [userId]);
   return result.rows;
@@ -77,14 +78,18 @@ const createProject = async ({
   batch_id,
   dept_id,
   guide_id,
+  objective,
+  category,
+  hosted_link,
+  visibility = 'public',
 }) => {
   // Determine status based on guide assignment
   const status = guide_id ? "pending" : "new";
 
   const query = `
     INSERT INTO projects 
-      (title, abstract, type, created_by, batch_id, dept_id, guide_id, status)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      (title, abstract, type, created_by, batch_id, dept_id, guide_id, status, objective, category, hosted_link, visibility, likes)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     RETURNING *;
   `;
   const values = [
@@ -95,12 +100,18 @@ const createProject = async ({
     batch_id,
     dept_id,
     guide_id,
-    status, // dynamically set
+    status,
+    objective ?? null,
+    category ?? 'mini',
+    hosted_link ?? null,
+    visibility,
+    0, // default likes
   ];
 
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
 
 // Update project
 const updateProject = async (projectId, { title, abstract }, userId) => {
@@ -215,6 +226,181 @@ const deleteProject = async (projectId, userId) => {
   return result.rows[0];
 };
 
+// Get full project details with all related data
+const getFullProjectDetails = async (projectId, userId = null) => {
+  const query = `
+    SELECT 
+      p.project_id,
+      p.title,
+      p.abstract,
+      p.objective,
+      p.category,
+      p.status,
+      p.type,
+      p.hosted_link,
+      p.visibility,
+      p.likes,
+      p.created_by,
+      p.guide_id,
+      p.guide_status,
+      p.created_at,
+      p.updated_at,
+      u.name AS created_by_name,
+      u.email AS created_by_email,
+      b.batch_name,
+      d.dept_name AS department,
+      t.team_name,
+      t.team_id,
+      g.name AS guide_name,
+      g.email AS guide_email
+    FROM projects p
+    LEFT JOIN users u ON p.created_by = u.user_id
+    LEFT JOIN batches b ON p.batch_id = b.batch_id
+    LEFT JOIN department d ON p.dept_id = d.dept_id
+    LEFT JOIN teams t ON p.project_id = t.project_id
+    LEFT JOIN faculty f ON p.guide_id = f.user_id
+    LEFT JOIN users g ON f.user_id = g.user_id
+    WHERE p.project_id = $1;
+  `;
+  const result = await pool.query(query, [projectId]);
+  return result.rows[0];
+};
+
+// Get project reviews
+const getProjectReviews = async (projectId) => {
+  const query = `
+    SELECT 
+      review_id,
+      project_id,
+      review_number,
+      file_url,
+      created_at
+    FROM project_reviews
+    WHERE project_id = $1
+    ORDER BY review_number ASC;
+  `;
+  const result = await pool.query(query, [projectId]);
+  return result.rows;
+};
+
+// Check if user can view project (permissions)
+const canViewProject = async (projectId, userId) => {
+  const query = `
+    SELECT 
+      p.visibility,
+      p.created_by,
+      tm.user_id as team_member_id,
+      p.guide_id
+    FROM projects p
+    LEFT JOIN teams t ON p.project_id = t.project_id
+    LEFT JOIN team_members tm ON t.team_id = tm.team_id AND tm.user_id = $2
+    WHERE p.project_id = $1;
+  `;
+  const result = await pool.query(query, [projectId, userId]);
+  
+  if (!result.rows.length) return false;
+  
+  const project = result.rows[0];
+  
+  // Public projects can be viewed by anyone
+  if (project.visibility === 'public') return true;
+  
+  // Private projects can only be viewed by creator, team members, or guide
+  return (
+    project.created_by === userId ||
+    project.team_member_id === userId ||
+    project.guide_id === userId
+  );
+};
+
+// Update project with new fields
+const updateProjectFull = async (projectId, updateData, userId) => {
+  // Check permission (creator or any team member)
+  const permissionQuery = `
+    SELECT p.created_by, tm.user_id
+    FROM projects p
+    LEFT JOIN teams t ON p.project_id = t.project_id
+    LEFT JOIN team_members tm ON t.team_id = tm.team_id
+    WHERE p.project_id = $1 AND (p.created_by = $2 OR tm.user_id = $2)
+  `;
+  const permissionResult = await pool.query(permissionQuery, [projectId, userId]);
+  
+  if (!permissionResult.rows.length) {
+    throw new Error("Unauthorized to update this project");
+  }
+
+  // Check current status - only allow editing if not in final states
+  const statusResult = await pool.query(
+    `SELECT status FROM projects WHERE project_id = $1`,
+    [projectId]
+  );
+  const currentStatus = statusResult.rows[0].status;
+  
+  // Allow status updates only if current status is not 'completed'
+  // If updating status to 'completed', allow it regardless
+  if (updateData.status && updateData.status !== 'completed' && currentStatus === 'completed') {
+    throw new Error("Cannot edit completed projects");
+  }
+
+  const { title, abstract, objective, category, status, hosted_link, visibility } = updateData;
+  
+  const updateQuery = `
+    UPDATE projects 
+    SET 
+      title = COALESCE($1, title),
+      abstract = COALESCE($2, abstract),
+      objective = COALESCE($3, objective),
+      category = COALESCE($4, category),
+      status = COALESCE($5, status),
+      hosted_link = COALESCE($6, hosted_link),
+      visibility = COALESCE($7, visibility),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE project_id = $8
+    RETURNING *;
+  `;
+  
+  const result = await pool.query(updateQuery, [
+    title, abstract, objective, category, status, hosted_link, visibility, projectId
+  ]);
+
+  return result.rows[0];
+};
+
+
+// Add project review
+const addProjectReview = async (projectId, fileUrl) => {
+  // Get next review number
+  const reviewNumberQuery = `
+    SELECT COALESCE(MAX(review_number), 0) + 1 as next_review_number
+    FROM project_reviews
+    WHERE project_id = $1;
+  `;
+  const reviewNumberResult = await pool.query(reviewNumberQuery, [projectId]);
+  const nextReviewNumber = reviewNumberResult.rows[0].next_review_number;
+
+  const insertQuery = `
+    INSERT INTO project_reviews (project_id, review_number, file_url)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  
+  const result = await pool.query(insertQuery, [projectId, nextReviewNumber, fileUrl]);
+  return result.rows[0];
+};
+
+// Like project
+const likeProject = async (projectId) => {
+  const updateQuery = `
+    UPDATE projects 
+    SET likes = likes + 1
+    WHERE project_id = $1
+    RETURNING likes;
+  `;
+  
+  const result = await pool.query(updateQuery, [projectId]);
+  return result.rows[0];
+};
+
 module.exports = {
   getAllProjects,
   getMyProjects,
@@ -224,4 +410,10 @@ module.exports = {
   getTeamMembers,
   getUserBatchAndDept,
   deleteProject,
+  getFullProjectDetails,
+  getProjectReviews,
+  canViewProject,
+  updateProjectFull,
+  addProjectReview,
+  likeProject,
 };

@@ -8,7 +8,11 @@ const {
   getProjectDetails,
   getAvailableGuides,
   assignGuideToTeam,
-  deleteProject, // <-- import new handler
+  deleteProject,
+  getFullProjectDetails,
+  updateProjectFull,
+  uploadProjectReview,
+  likeProject,
 } = require("../Handlers/ProjectHandler");
 
 const route = express.Router();
@@ -28,14 +32,26 @@ route.get("/guides/:dept_id", getAvailableGuides);
 // GET /projects/:projectId
 route.get("/:projectId", getProjectDetails);
 
+// GET /projects/:projectId/details
+route.get("/:projectId/details", getFullProjectDetails);
+
 // POST /projects
 route.post("/", createProject);
 
 // PUT /projects/:projectId
 route.put("/:projectId", updateProject);
 
+// PUT /projects/:projectId/full
+route.put("/:projectId/full", updateProjectFull);
+
 // DELETE /projects/:projectId
 route.delete("/:projectId", deleteProject);
+
+// POST /projects/:projectId/reviews
+route.post("/:projectId/reviews", uploadProjectReview);
+
+// POST /projects/:projectId/like
+route.post("/:projectId/like", likeProject);
 
 // POST /projects/teams/:teamId/assign-guide
 route.post("/teams/:teamId/assign-guide", assignGuideToTeam);

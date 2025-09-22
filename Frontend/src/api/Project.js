@@ -90,6 +90,52 @@ class Project {
       throw error;
     }
   }
+
+  // Get full project details
+  static async getFullProjectDetails(projectId) {
+    try {
+      const response = await axiosInstance.get(`/projects/${projectId}/details`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update project with full fields
+  static async updateProjectFull(projectId, projectData) {
+    try {
+      const response = await axiosInstance.put(
+        `/projects/${projectId}/full`,
+        projectData
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Upload project review
+  static async uploadReview(projectId, fileUrl) {
+    try {
+      const response = await axiosInstance.post(
+        `/projects/${projectId}/reviews`,
+        { file_url: fileUrl }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Like project
+  static async likeProject(projectId) {
+    try {
+      const response = await axiosInstance.post(`/projects/${projectId}/like`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export default Project;

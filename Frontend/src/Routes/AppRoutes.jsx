@@ -7,6 +7,7 @@ import Mentors from "../Pages/Mentors";
 import Notifications from "../Pages/Notifications";
 import Register from "../Pages/Register";
 import Login from "../Pages/Login";
+import ProjectDetail from "../Pages/ProjectDetail";
 import ProtectedRoute from "./ProtectedRoutes";
 
 const AppRoutes = () => {
@@ -23,6 +24,7 @@ const AppRoutes = () => {
           <Route path="/mentors" element={<Mentors />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/projects/:projectId" element={<ProjectDetail />} />
         </Route>
       </Route>
     </Routes>
