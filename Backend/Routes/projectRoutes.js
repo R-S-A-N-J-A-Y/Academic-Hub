@@ -3,6 +3,7 @@ const authenticateToken = require("../Middlewares/authMiddleware");
 const {
   getAllProjects,
   getMyProjects,
+  getGuidedProjects,
   createProject,
   updateProject,
   getProjectDetails,
@@ -25,6 +26,9 @@ route.get("/", getAllProjects);
 
 // GET /projects/my
 route.get("/my", getMyProjects);
+
+// GET /projects/guided/my
+route.get("/guided/my", getGuidedProjects);
 
 // GET /projects/guides
 route.get("/guides/:dept_id", getAvailableGuides);

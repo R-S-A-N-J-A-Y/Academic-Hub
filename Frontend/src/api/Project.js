@@ -23,6 +23,16 @@ class Project {
     }
   }
 
+  // Get projects where I am the guide (faculty)
+  static async getMyGuidedProjects() {
+    try {
+      const response = await axiosInstance.get("/projects/guided/my");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Get project details
   static async getProjectDetails(projectId) {
     try {
@@ -94,7 +104,9 @@ class Project {
   // Get full project details
   static async getFullProjectDetails(projectId) {
     try {
-      const response = await axiosInstance.get(`/projects/${projectId}/details`);
+      const response = await axiosInstance.get(
+        `/projects/${projectId}/details`
+      );
       return response.data;
     } catch (error) {
       throw error;

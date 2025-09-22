@@ -69,6 +69,39 @@ ORDER BY p.project_id, p.created_at DESC;
   return result.rows;
 };
 
+// Get projects where the user is the assigned guide
+const getGuidedProjects = async (userId) => {
+  const query = `
+    SELECT 
+      p.project_id,
+      p.title,
+      p.abstract,
+      p.type,
+      p.status,
+      COALESCE(p.guide_status, 'NA') AS guide_status,
+      p.created_at,
+      p.updated_at,
+      u.name AS created_by_name,
+      u.email AS created_by_email,
+      b.batch_name,
+      d.dept_name AS department,
+      t.team_name,
+      g.name AS guide_name,
+      g.email AS guide_email
+    FROM projects p
+    LEFT JOIN users u ON p.created_by = u.user_id
+    LEFT JOIN batches b ON p.batch_id = b.batch_id
+    LEFT JOIN department d ON p.dept_id = d.dept_id
+    LEFT JOIN teams t ON p.project_id = t.project_id
+    LEFT JOIN faculty f ON p.guide_id = f.user_id
+    LEFT JOIN users g ON f.user_id = g.user_id
+    WHERE p.guide_id = $1
+    ORDER BY p.created_at DESC;
+  `;
+  const result = await pool.query(query, [userId]);
+  return result.rows;
+};
+
 // Create project
 const createProject = async ({
   title,
@@ -206,6 +239,18 @@ const getUserBatchAndDept = async (userId) => {
     JOIN batches b ON s.batch_id = b.batch_id
     JOIN department d ON s.dept_id = d.dept_id
     WHERE s.user_id = $1;
+  `;
+  const result = await pool.query(query, [userId]);
+  return result.rows[0];
+};
+
+// Get faculty department for project creation by faculty
+const getFacultyDept = async (userId) => {
+  const query = `
+    SELECT f.dept_id, d.dept_name
+    FROM faculty f
+    JOIN department d ON f.dept_id = d.dept_id
+    WHERE f.user_id = $1;
   `;
   const result = await pool.query(query, [userId]);
   return result.rows[0];
@@ -479,11 +524,13 @@ const likeProject = async (projectId) => {
 module.exports = {
   getAllProjects,
   getMyProjects,
+  getGuidedProjects,
   createProject,
   updateProject,
   getProjectDetails,
   getTeamMembers,
   getUserBatchAndDept,
+  getFacultyDept,
   deleteProject,
   getFullProjectDetails,
   getProjectReviews,

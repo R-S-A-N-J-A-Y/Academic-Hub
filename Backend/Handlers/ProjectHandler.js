@@ -43,6 +43,27 @@ const getMyProjects = async (req, res) => {
   }
 };
 
+// Get projects where I am the guide
+const getGuidedProjects = async (req, res) => {
+  try {
+    const { user_id } = req.user;
+    const projects = await projectController.getGuidedProjects(user_id);
+
+    res.status(200).json({
+      success: true,
+      data: projects,
+      message: "Guided projects fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching guided projects:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 // Create project
 const createProject = async (req, res) => {
   try {
@@ -68,13 +89,22 @@ const createProject = async (req, res) => {
       });
     }
 
-    // Get user's batch and department info
-    const userInfo = await projectController.getUserBatchAndDept(user_id);
-    if (!userInfo) {
-      return res.status(400).json({
-        success: false,
-        message: "User must be a student to create projects",
-      });
+    // Determine creator context. Student or Faculty
+    let batchId = null;
+    let deptId = null;
+    const studentInfo = await projectController.getUserBatchAndDept(user_id);
+    if (studentInfo) {
+      batchId = studentInfo.batch_id;
+      deptId = studentInfo.dept_id;
+    } else {
+      const facultyInfo = await projectController.getFacultyDept(user_id);
+      if (!facultyInfo) {
+        return res.status(400).json({
+          success: false,
+          message: "User must be a student or faculty to create projects",
+        });
+      }
+      deptId = facultyInfo.dept_id;
     }
 
     // Create project
@@ -83,8 +113,8 @@ const createProject = async (req, res) => {
       abstract,
       type: projectType,
       created_by: user_id,
-      batch_id: userInfo.batch_id,
-      dept_id: userInfo.dept_id,
+      batch_id: batchId,
+      dept_id: deptId,
       guide_id: guideId ?? null,
       objective: objective ?? null,
       category: category ?? "mini", // only default if undefined
@@ -110,11 +140,14 @@ const createProject = async (req, res) => {
         });
       }
 
-      // Validate team members
-      const validMembers = await teamController.validateTeamMembers(
-        teamMembers,
-        user_id
-      );
+      // Validate team members (only if provided and creator is student)
+      let validMembers = [];
+      if (studentInfo && teamMembers && teamMembers.length) {
+        validMembers = await teamController.validateTeamMembers(
+          teamMembers,
+          user_id
+        );
+      }
 
       // Create team
       team = await teamController.createTeam(
@@ -125,12 +158,14 @@ const createProject = async (req, res) => {
       );
 
       // Add team members
-      for (const member of validMembers) {
-        await teamController.addTeamMember(
-          team.team_id,
-          member.user_id,
-          "member"
-        );
+      if (validMembers.length) {
+        for (const member of validMembers) {
+          await teamController.addTeamMember(
+            team.team_id,
+            member.user_id,
+            "member"
+          );
+        }
       }
     }
 
@@ -518,6 +553,7 @@ const likeProject = async (req, res) => {
 module.exports = {
   getAllProjects,
   getMyProjects,
+  getGuidedProjects,
   createProject,
   updateProject,
   getProjectDetails,

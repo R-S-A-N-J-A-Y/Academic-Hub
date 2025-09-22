@@ -5,12 +5,13 @@ import { useAuth } from "../Context/AuthContext";
 
 const Header = () => {
   const location = useLocation();
-  const { clearAuthData } = useAuth();
+  const { auth, clearAuthData } = useAuth();
   const navigate = useNavigate();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
     { name: "Mentors", path: "/mentors" },
+    ...(auth?.role === "faculty" ? [{ name: "Projects", path: "/projects" }] : []),
     { name: "Notifications", path: "/notifications" },
     { name: "Profile", path: "/profile" },
   ];
