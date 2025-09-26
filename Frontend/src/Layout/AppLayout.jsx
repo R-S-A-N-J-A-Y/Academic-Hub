@@ -4,7 +4,7 @@ import Header from "../Components/Header";
 
 export const AppLayout = () => {
   return (
-    <div>
+    <div className="">
       <Header />
       <Outlet />
       <Footer />

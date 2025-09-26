@@ -35,7 +35,7 @@ const MentorDetail = () => {
   }, [id]);
 
   const renderProjectItem = (p) => {
-    const published = p.ispublished === true || p.ispublished === "true";
+    // const published = p.ispublished === true || p.ispublished === "true";
     return (
       <div
         key={p.project_id}

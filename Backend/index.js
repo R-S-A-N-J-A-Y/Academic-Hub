@@ -17,6 +17,8 @@ app.use("/faculty", require("./Routes/facultyRoutes"));
 app.use("/mentors", require("./Routes/mentorRoutes"));
 app.use("/user", require("./Routes/userRoutes"));
 app.use("/projects", require("./Routes/projectRoutes"));
+app.use("/batches", require("./Routes/batchRoutes"));
+app.use("/departments", require("./Routes/departmentRoutes"));
 
 app.get("/", (req, res) => {
   res.send("Listening...");

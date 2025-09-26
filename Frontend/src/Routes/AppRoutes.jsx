@@ -13,7 +13,7 @@ import StudentDashboard from "../Pages/StudentDashboard";
 import { useAuth } from "../Context/AuthContext";
 import FacultyDashboard from "../Pages/FacultyDashboard";
 import AdminDashboard from "../Pages/AdminDashboard";
-import FacultyProjects from "../Pages/FacultyProjects";
+import Projects from "../Pages/Projects";
 
 const AppRoutes = () => {
   const { auth } = useAuth();
@@ -43,7 +43,7 @@ const AppRoutes = () => {
           <Route path="/mentors/:id" element={<MentorDetail />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/projects" element={<FacultyProjects />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
         </Route>
       </Route>
