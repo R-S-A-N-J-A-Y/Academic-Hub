@@ -14,6 +14,7 @@ const {
   updateProjectFull,
   uploadProjectReview,
   likeProject,
+  getStudentStats,
 } = require("../Handlers/ProjectHandler");
 
 const route = express.Router();
@@ -32,6 +33,9 @@ route.get("/guided/my", getGuidedProjects);
 
 // GET /projects/guides
 route.get("/guides/:dept_id", getAvailableGuides);
+
+// GET /projects/my/stats
+route.get("/my/stats", getStudentStats);
 
 // GET /projects/:projectId
 route.get("/:projectId", getProjectDetails);

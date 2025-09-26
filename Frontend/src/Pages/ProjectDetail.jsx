@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import Project from "../api/Project";
@@ -32,11 +32,7 @@ const ProjectDetail = () => {
   const [reviewFile, setReviewFile] = useState(null);
   const [uploadingReview, setUploadingReview] = useState(false);
 
-  useEffect(() => {
-    fetchProjectDetails();
-  }, [projectId]);
-
-  const fetchProjectDetails = async () => {
+  const fetchProjectDetails = useCallback(async () => {
     try {
       setLoading(true);
       const res = await Project.getFullProjectDetails(projectId);
@@ -65,7 +61,11 @@ const ProjectDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchProjectDetails();
+  }, [fetchProjectDetails]);
 
   const canEdit = () => {
     if (!project || !auth) return false;
@@ -74,6 +74,14 @@ const ProjectDetail = () => {
       project.team_members.some(
         (m) => m.auth_id === auth.auth_id && m.role_in_team === "leader"
       )
+    );
+  };
+
+  const canDelete = () => {
+    if (!project || !auth) return false;
+    // Only the original creator who is a student can delete
+    return (
+      project.created_by.auth_id === auth.auth_id && auth.role === "student"
     );
   };
 
@@ -112,6 +120,21 @@ const ProjectDetail = () => {
       setError(err.response?.data?.message || "Failed to upload review");
     } finally {
       setUploadingReview(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const ok = window.confirm(
+      "Are you sure you want to delete this project? This action cannot be undone."
+    );
+    if (!ok) return false;
+    try {
+      await Project.deleteProject(projectId);
+      navigate("/projects");
+      return true;
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete project");
+      return false;
     }
   };
 
@@ -187,6 +210,7 @@ const ProjectDetail = () => {
                 Edit Project
               </button>
             )}
+            {/* header actions - deletion moved below Created By */}
           </div>
         </div>
       </div>
@@ -273,7 +297,9 @@ const ProjectDetail = () => {
                   </div>
                 )}
 
-                {(project.conference_name || project.conference_year || project.conference_status) && (
+                {(project.conference_name ||
+                  project.conference_year ||
+                  project.conference_status) && (
                   <div className="flex flex-wrap items-center gap-2">
                     {project.conference_name && (
                       <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-sm">
@@ -286,12 +312,16 @@ const ProjectDetail = () => {
                       </span>
                     )}
                     {project.conference_status && (
-                      <span className={`px-2 py-1 rounded text-sm ${
-                        project.conference_status === "prize"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-blue-100 text-blue-800"
-                      }`}>
-                        {project.conference_status === "prize" ? "Prize" : "Participation"}
+                      <span
+                        className={`px-2 py-1 rounded text-sm ${
+                          project.conference_status === "prize"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {project.conference_status === "prize"
+                          ? "Prize"
+                          : "Participation"}
                       </span>
                     )}
                   </div>
@@ -435,6 +465,29 @@ const ProjectDetail = () => {
             <h2 className="text-xl font-semibold mb-3">Created By</h2>
             <p className="font-medium">{project.created_by.name}</p>
             <p className="text-gray-500 text-sm">{project.created_by.email}</p>
+            {canDelete() && (
+              <div className="mt-3">
+                <button
+                  onClick={handleDelete}
+                  className="text-sm text-red-600 hover:underline flex items-center gap-2"
+                  title="Delete this project"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M6 2a1 1 0 00-1 1v1H3a1 1 0 000 2h14a1 1 0 100-2h-2V3a1 1 0 00-1-1H6zm2 6a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 10-2 0v6a1 1 0 102 0V8z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -621,7 +674,10 @@ const ProjectDetail = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Paper Link */}
                   <div className="flex flex-col">
-                    <label htmlFor="paper_link" className="text-sm text-gray-700 mb-1">
+                    <label
+                      htmlFor="paper_link"
+                      className="text-sm text-gray-700 mb-1"
+                    >
                       Paper Link
                     </label>
                     <input
@@ -631,14 +687,20 @@ const ProjectDetail = () => {
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
                       value={editForm.paper_link ?? ""}
                       onChange={(e) =>
-                        setEditForm((prev) => ({ ...prev, paper_link: e.target.value }))
+                        setEditForm((prev) => ({
+                          ...prev,
+                          paper_link: e.target.value,
+                        }))
                       }
                     />
                   </div>
 
                   {/* Conference Name */}
                   <div className="flex flex-col">
-                    <label htmlFor="conference_name" className="text-sm text-gray-700 mb-1">
+                    <label
+                      htmlFor="conference_name"
+                      className="text-sm text-gray-700 mb-1"
+                    >
                       Conference Name
                     </label>
                     <input
@@ -657,7 +719,10 @@ const ProjectDetail = () => {
 
                   {/* Conference Year */}
                   <div className="flex flex-col">
-                    <label htmlFor="conference_year" className="text-sm text-gray-700 mb-1">
+                    <label
+                      htmlFor="conference_year"
+                      className="text-sm text-gray-700 mb-1"
+                    >
                       Conference Year
                     </label>
                     <input
@@ -670,7 +735,8 @@ const ProjectDetail = () => {
                       onChange={(e) =>
                         setEditForm((prev) => ({
                           ...prev,
-                          conference_year: e.target.value === "" ? "" : Number(e.target.value),
+                          conference_year:
+                            e.target.value === "" ? "" : Number(e.target.value),
                         }))
                       }
                     />
@@ -678,7 +744,10 @@ const ProjectDetail = () => {
 
                   {/* Conference Status */}
                   <div className="flex flex-col">
-                    <label htmlFor="conference_status" className="text-sm text-gray-700 mb-1">
+                    <label
+                      htmlFor="conference_status"
+                      className="text-sm text-gray-700 mb-1"
+                    >
                       Conference Status
                     </label>
                     <select

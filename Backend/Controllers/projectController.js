@@ -263,17 +263,20 @@ const getFacultyDept = async (userId) => {
 };
 
 const deleteProject = async (projectId, userId) => {
-  // Check if user is authorized (creator or team member)
+  // Only the original creator may delete the project, and only if they are a student
   const checkQuery = `
-    SELECT p.created_by, tm.user_id
+    SELECT p.created_by
     FROM projects p
-    LEFT JOIN teams t ON p.project_id = t.project_id
-    LEFT JOIN team_members tm ON t.team_id = tm.team_id
-    WHERE p.project_id = $1 AND (p.created_by = $2 OR tm.user_id = $2)
+    WHERE p.project_id = $1
   `;
-  const checkResult = await pool.query(checkQuery, [projectId, userId]);
+  const checkResult = await pool.query(checkQuery, [projectId]);
 
   if (!checkResult.rows.length) {
+    throw new Error("Project not found");
+  }
+
+  const creatorId = checkResult.rows[0].created_by;
+  if (creatorId !== userId) {
     throw new Error("Unauthorized to delete this project");
   }
 
@@ -527,6 +530,42 @@ const likeProject = async (projectId) => {
   return result.rows[0];
 };
 
+// Get student-specific statistics: total projects, published count, in-progress count, teams participated
+const getStudentStats = async (userId) => {
+  const query = `
+    SELECT
+      (SELECT COUNT(DISTINCT p.project_id)
+       FROM projects p
+       LEFT JOIN teams t ON p.project_id = t.project_id
+       LEFT JOIN team_members tm ON t.team_id = tm.team_id
+       WHERE p.created_by = $1 OR tm.user_id = $1) AS total_projects,
+      (SELECT COUNT(DISTINCT p.project_id)
+       FROM projects p
+       LEFT JOIN teams t ON p.project_id = t.project_id
+       LEFT JOIN team_members tm ON t.team_id = tm.team_id
+       WHERE (p.created_by = $1 OR tm.user_id = $1) AND COALESCE(p.ispublished, false) = true) AS published_projects,
+      (SELECT COUNT(DISTINCT p.project_id)
+       FROM projects p
+       LEFT JOIN teams t ON p.project_id = t.project_id
+       LEFT JOIN team_members tm ON t.team_id = tm.team_id
+       WHERE (p.created_by = $1 OR tm.user_id = $1) AND p.status = 'in-progress') AS in_progress_projects,
+      (SELECT COUNT(DISTINCT t.team_id)
+       FROM teams t
+       JOIN team_members tm ON t.team_id = tm.team_id
+       WHERE tm.user_id = $1) AS teams_participated
+  `;
+
+  const result = await pool.query(query, [userId]);
+  return (
+    result.rows[0] || {
+      total_projects: 0,
+      published_projects: 0,
+      in_progress_projects: 0,
+      teams_participated: 0,
+    }
+  );
+};
+
 module.exports = {
   getAllProjects,
   getMyProjects,
@@ -544,4 +583,5 @@ module.exports = {
   updateProjectFull,
   addProjectReview,
   likeProject,
+  getStudentStats,
 };

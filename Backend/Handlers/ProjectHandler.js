@@ -550,6 +550,32 @@ const likeProject = async (req, res) => {
   }
 };
 
+// Get student dashboard statistics
+const getStudentStats = async (req, res) => {
+  try {
+    const { user_id } = req.user;
+    const stats = await projectController.getStudentStats(user_id);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalProjects: Number(stats.total_projects) || 0,
+        publishedProjects: Number(stats.published_projects) || 0,
+        inProgressProjects: Number(stats.in_progress_projects) || 0,
+        teamsParticipated: Number(stats.teams_participated) || 0,
+      },
+      message: "Student statistics fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching student stats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllProjects,
   getMyProjects,
@@ -564,4 +590,5 @@ module.exports = {
   updateProjectFull,
   uploadProjectReview,
   likeProject,
+  getStudentStats,
 };
