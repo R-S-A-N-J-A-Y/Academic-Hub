@@ -128,7 +128,7 @@ const Login = async (req, res) => {
 
     // get role-specific details
     let extraData = {};
-    if (user.role === "faculty") {
+    if (user.role === "faculty" || user.role === "coordinator") {
       extraData = await getFacultyDetails(user.user_id);
     } else if (user.role === "student") {
       extraData = await getStudentDetails(user.user_id);

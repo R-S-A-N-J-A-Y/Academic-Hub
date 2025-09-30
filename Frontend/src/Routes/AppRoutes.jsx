@@ -23,6 +23,8 @@ const AppRoutes = () => {
     DashboardComponent = StudentDashboard;
   } else if (auth.role === "faculty") {
     DashboardComponent = FacultyDashboard;
+  } else if (auth.role === "coordinator") {
+    DashboardComponent = AdminDashboard;
   } else if (auth.role === "admin") {
     DashboardComponent = AdminDashboard;
   }

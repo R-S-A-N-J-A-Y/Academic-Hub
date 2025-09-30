@@ -4,12 +4,13 @@ const { changePassword } = require("../Controllers/userController");
 
 const getProfile = async (req, res) => {
   try {
-    const { user_id, role } = req.user; // from JWT token via authMiddleware
+    const { user_id, role } = req.user;// from JWT token via authMiddleware
 
     let profileData = null;
+    
 
     // Fetch profile based on user role
-    if (role === "faculty") {
+    if (role === "faculty" || role === "coordinator") {
       profileData = await getFacultyProfile(user_id);
     } else if (role === "student") {
       profileData = await getStudentProfile(user_id);

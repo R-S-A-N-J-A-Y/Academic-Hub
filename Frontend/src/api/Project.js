@@ -7,6 +7,12 @@ class Project {
     return response.data;
   }
 
+  //Get Project By Department
+  static async getAllProjectsByDepartment(departmentId) {
+    const response = await axiosInstance.get("/projects?");
+    return response.data;
+  }
+
   // Get my projects
   static async getMyProjects() {
     const response = await axiosInstance.get("/projects/my");

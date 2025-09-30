@@ -32,6 +32,8 @@ const Login = () => {
       if (res.status === 200) {
         const user = res.data.user;
 
+        console.log(user)
+
         const userData = {
           id: user.id,
           role: user.role,

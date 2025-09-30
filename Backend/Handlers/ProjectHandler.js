@@ -22,6 +22,25 @@ const getAllProjects = async (req, res) => {
   }
 };
 
+const getAllProjectsByDepartment = async (req, res) => {
+  try {
+    const { dept_id } = req.params;
+    const projects = await projectController.getAllProjectsByDepartment(dept_id);
+    res.status(200).json({
+      success: true,
+      data: projects,
+      message: "Projects fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 // Get my projects
 const getMyProjects = async (req, res) => {
   try {
@@ -578,6 +597,7 @@ const getStudentStats = async (req, res) => {
 
 module.exports = {
   getAllProjects,
+  getAllProjectsByDepartment,
   getMyProjects,
   getGuidedProjects,
   createProject,

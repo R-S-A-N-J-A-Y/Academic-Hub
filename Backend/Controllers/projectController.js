@@ -4,16 +4,8 @@ const pool = require("../db/dbConfig");
 const getAllProjects = async () => {
   const query = `
     SELECT 
-      p.project_id,
-      p.title,
-      p.abstract,
-      p.visibility,
-  p.type,
-  p.category,
-      p.status,
-      COALESCE(p.guide_status, 'NA') AS guide_status, -- only guide_status defaults to 'NA'
-      p.created_at,
-      p.updated_at,
+      p.*,  -- all columns from projects
+      COALESCE(p.guide_status, 'NA') AS guide_status,
       u.name AS created_by_name,
       u.email AS created_by_email,
       b.batch_name,
@@ -29,11 +21,21 @@ const getAllProjects = async () => {
     LEFT JOIN faculty f ON p.guide_id = f.user_id
     LEFT JOIN users g ON f.user_id = g.user_id
     ORDER BY p.created_at DESC;
+
   `;
 
   const result = await pool.query(query);
   return result.rows;
 };
+
+const getAllProjectsByDepartment = async (dept_id) => {
+  const query = `
+    SELECT * FROM projects WHERE dept_id = $1
+    ORDER BY created_at DESC;
+  `;
+  const result = await pool.query(query, [dept_id]);
+  return result.rows;
+}
 
 // Get projects created by or assigned to a user
 const getMyProjects = async (userId) => {
@@ -584,4 +586,5 @@ module.exports = {
   addProjectReview,
   likeProject,
   getStudentStats,
+  getAllProjectsByDepartment
 };

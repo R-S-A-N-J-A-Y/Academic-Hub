@@ -121,7 +121,7 @@ const Profile = () => {
     );
   }
 
-  const isFaculty = profileData.role === "faculty";
+  const isFaculty = profileData.role === "faculty" || profileData.role === "coordinator"; 
   const isStudent = profileData.role === "student";
 
   return (

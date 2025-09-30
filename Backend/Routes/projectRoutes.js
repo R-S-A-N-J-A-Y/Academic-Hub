@@ -15,6 +15,7 @@ const {
   uploadProjectReview,
   likeProject,
   getStudentStats,
+  getAllProjectsByDepartment
 } = require("../Handlers/ProjectHandler");
 
 const route = express.Router();
@@ -24,6 +25,9 @@ route.use(authenticateToken);
 
 // GET /projects
 route.get("/", getAllProjects);
+
+// GET /projects/dept?dept_id
+route.get("/dept", getAllProjectsByDepartment);
 
 // GET /projects/my
 route.get("/my", getMyProjects);
