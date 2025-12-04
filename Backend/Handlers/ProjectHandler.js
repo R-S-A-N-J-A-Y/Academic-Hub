@@ -100,7 +100,7 @@ const createProject = async (req, res) => {
       visibility = "public",
     } = req.body;
 
-    // Validate required fields
+    // Validate required basic fields first
     if (!title || !abstract) {
       return res.status(400).json({
         success: false,
@@ -126,7 +126,35 @@ const createProject = async (req, res) => {
       deptId = facultyInfo.dept_id;
     }
 
-    // Create project
+    // ---------------- TEAM-RELATED VALIDATIONS (before any DB inserts) ----------------
+    let validMembers = [];
+    if (projectType === "team") {
+      // Team name required
+      if (!teamName) {
+        return res.status(400).json({
+          success: false,
+          message: "Team name is required for team projects",
+        });
+      }
+
+      // Team size constraints
+      if (!teamMembers || teamMembers.length < 2 || teamMembers.length > 4) {
+        return res.status(400).json({
+          success: false,
+          message: "Team must have 2-4 members",
+        });
+      }
+
+      // Validate team members (only if creator is student)
+      if (studentInfo && teamMembers && teamMembers.length) {
+        validMembers = await teamController.validateTeamMembers(
+          teamMembers,
+          user_id
+        );
+      }
+    }
+
+    // ---------------- CREATE PROJECT AFTER ALL VALIDATIONS PASS ----------------
     const project = await projectController.createProject({
       title,
       abstract,
@@ -145,29 +173,6 @@ const createProject = async (req, res) => {
 
     // Handle team creation if projectType is 'team'
     if (projectType === "team") {
-      if (!teamName) {
-        return res.status(400).json({
-          success: false,
-          message: "Team name is required for team projects",
-        });
-      }
-
-      if (!teamMembers || teamMembers.length < 2 || teamMembers.length > 4) {
-        return res.status(400).json({
-          success: false,
-          message: "Team must have 2-4 members",
-        });
-      }
-
-      // Validate team members (only if provided and creator is student)
-      let validMembers = [];
-      if (studentInfo && teamMembers && teamMembers.length) {
-        validMembers = await teamController.validateTeamMembers(
-          teamMembers,
-          user_id
-        );
-      }
-
       // Create team
       team = await teamController.createTeam(
         project.project_id,
@@ -466,7 +471,7 @@ const getFullProjectDetails = async (req, res) => {
 // Update project with new fields
 const updateProjectFull = async (req, res) => {
   try {
-    const { user_id } = req.user;
+    const { user_id, role } = req.user;
     const { projectId } = req.params;
     const {
       title,
@@ -482,6 +487,22 @@ const updateProjectFull = async (req, res) => {
       conference_year,
       conference_status,
     } = req.body;
+
+    // If a student is trying to change status and the project already has a guide, block it
+    if (role === "student" && typeof status !== "undefined") {
+      const current = await projectController.getFullProjectDetails(
+        projectId,
+        user_id
+      );
+
+      if (current && current.guide_id) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "You cannot change the status after a guide has been assigned to this project",
+        });
+      }
+    }
 
     const updatedProject = await projectController.updateProjectFull(
       projectId,

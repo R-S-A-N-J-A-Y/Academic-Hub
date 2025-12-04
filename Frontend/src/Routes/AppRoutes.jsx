@@ -7,6 +7,8 @@ import Notifications from "../Pages/Notifications";
 import Register from "../Pages/Register";
 import Login from "../Pages/Login";
 import ProjectDetail from "../Pages/ProjectDetail";
+import EditProject from "../Pages/EditProject";
+import CreateProject from "../Pages/CreateProject";
 import MentorDetail from "../Pages/MentorDetail";
 import ProtectedRoute from "./ProtectedRoutes";
 import StudentDashboard from "../Pages/StudentDashboard";
@@ -46,7 +48,9 @@ const AppRoutes = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/create" element={<CreateProject />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
+          <Route path="/projects/:projectId/edit" element={<EditProject />} />
         </Route>
       </Route>
     </Routes>
