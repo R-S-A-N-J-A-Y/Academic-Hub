@@ -6,7 +6,7 @@ const dbPassword = process.env.PASSWORD;
 const dbName = process.env.DB_NAME;
 
 const pool = new Pool({
-  connectionString: `postgresql://postgres:${dbPassword}@db.${dbName}.supabase.co:5432/postgres`,
+  connectionString: `postgresql://postgres.${dbName}:${dbPassword}@aws-1-ap-south-1.pooler.supabase.com:6543/postgres`,
   ssl: { rejectUnauthorized: false }, // required for Supabase
 });
 
