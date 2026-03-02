@@ -84,14 +84,14 @@ const Register = async (req, res) => {
         ...extraData,
       },
       JWT_KEY,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -144,14 +144,14 @@ const Login = async (req, res) => {
         ...extraData,
       },
       JWT_KEY,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     // set cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
