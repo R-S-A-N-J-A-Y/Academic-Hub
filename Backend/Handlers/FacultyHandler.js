@@ -20,4 +20,46 @@ const getFaculties = async (req, res) => {
   }
 };
 
-module.exports = { getFaculties };
+const getAllFaculties = async (req, res) => {
+  try {
+    const deptId = req.params.id;
+    const faculties = await facultyController.fetchAllFaculties(deptId);
+
+    res.status(200).json({
+      success: true,
+      data: faculties,
+      message: "All faculties fetched successfully",
+    });
+  } catch (error) {
+    console.error("Error fetching all faculties:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+const updateIsGuide = async (req, res) => {
+  try {
+    // ensure only admin can perform this action
+    const requester = req.user;
+    if (!requester || requester.role !== "coordinator") {
+      return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    const { ids, isGuide } = req.body;
+    if (!Array.isArray(ids) || typeof isGuide !== "boolean") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid payload" });
+    }
+
+    const updated = await facultyController.updateIsGuide(ids, isGuide);
+
+    res
+      .status(200)
+      .json({ success: true, data: updated, message: "Updated guide status" });
+  } catch (error) {
+    console.error("Error updating isGuide:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+module.exports = { getFaculties, getAllFaculties, updateIsGuide };

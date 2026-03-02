@@ -12,6 +12,7 @@ CREATE TABLE public.faculty (
   user_id INTEGER NOT NULL,
   dept_id INTEGER NOT NULL,
   designation TEXT NULL,
+  isguide BOOLEAN DEFAULT FALSE,
   CONSTRAINT faculty_pkey PRIMARY KEY (id),
   CONSTRAINT faculty_user_id_key UNIQUE (user_id),
   CONSTRAINT faculty_dept_id_fkey FOREIGN KEY (dept_id) REFERENCES department (dept_id) ON DELETE CASCADE,
@@ -25,6 +26,7 @@ CREATE TABLE public.faculty (
 - `user_id` (INTEGER NOT NULL UNIQUE): References users table, must be unique
 - `dept_id` (INTEGER NOT NULL): References department table
 - `designation` (TEXT): Faculty designation/title (e.g., "Professor", "Assistant Professor")
+- `isguide` (BOOLEAN DEFAULT FALSE): Flag indicating whether this faculty member is a project guide. Only guides appear in mentor listings and can be assigned to teams/projects.
 
 ## Relationships
 

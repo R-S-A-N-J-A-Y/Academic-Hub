@@ -59,3 +59,13 @@ CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id);
 CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_guide_assignments_project_id ON guide_assignments(project_id);
 CREATE INDEX IF NOT EXISTS idx_guide_assignments_guide_id ON guide_assignments(guide_id);
+
+-- faculty table (added later, includes guide flag)
+CREATE TABLE IF NOT EXISTS faculty (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(user_id) ON DELETE CASCADE,
+    dept_id INTEGER NOT NULL REFERENCES department(dept_id) ON DELETE CASCADE,
+    designation TEXT,
+    isguide BOOLEAN DEFAULT FALSE
+);
+
