@@ -60,6 +60,18 @@ const fetchAllFaculties = async (deptId) => {
   return result.rows;
 };
 
+// returns count of guide-enabled faculty members for a department
+const fetchGuideCount = async (deptId) => {
+  const query = `
+      SELECT COUNT(*) AS count
+      FROM faculty
+      WHERE dept_id = $1
+        AND COALESCE(isguide, false) = true;
+    `;
+  const result = await pool.query(query, [deptId]);
+  return Number(result.rows[0]?.count ?? 0);
+};
+
 const updateIsGuide = async (ids, isGuide) => {
   // ids should be array of faculty.id values
   if (!Array.isArray(ids) || ids.length === 0) return [];
@@ -193,4 +205,5 @@ module.exports = {
   getFacultyDetails,
   getFacultyProfile,
   getMentorStats,
+  fetchGuideCount
 };

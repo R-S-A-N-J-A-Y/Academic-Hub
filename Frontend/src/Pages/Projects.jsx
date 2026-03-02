@@ -1,167 +1,11 @@
 import { useEffect, useState } from "react";
 import DropDown from "../Components/DropDown";
+import ProjectCard from "../Components/ProjectCard";
 import Batch from "../api/Batch";
 import Department from "../api/Department";
 import Project from "../api/Project";
 import Loader from "../Components/Loader";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
-
-// small utility for status badges
-const getStatusBadge = (status) => {
-  const statusColors = {
-    pending: "bg-yellow-100 text-yellow-800",
-    approved: "bg-green-100 text-green-800",
-    rejected: "bg-red-100 text-red-800",
-    "in-progress": "bg-blue-100 text-blue-800",
-    completed: "bg-gray-100 text-gray-800",
-  };
-  return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-        statusColors[status] || "bg-gray-100 text-gray-800"
-      }`}
-    >
-      {String(status || "")
-        .replace(/[-\s]+/g, " ")
-        .toUpperCase()}
-    </span>
-  );
-};
-
-const ProjectTable = ({ projects, navigate }) => {
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className="overflow-x-auto md:overflow-x-visible">
-        <table className="min-w-full divide-y divide-gray-100">
-          <thead>
-            <tr className="bg-gradient-to-r from-gray-50 to-white">
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Project
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Created By
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Team
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Department
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Guide
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Created
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {projects.map((project) => (
-              <tr
-                key={project.project_id || project.id}
-                className="hover:bg-blue-50/50 transition-colors"
-              >
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/projects/${project.project_id || project.id}`
-                          )
-                        }
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        {project.title}
-                      </button>
-                      {project.visibility === "private" && (
-                        <span
-                          title="Private project"
-                          aria-label="Private project"
-                          className="text-gray-500"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd" // <-- Problematic attribute
-                              d="M5 8a3 3 0 116 0v1h1a2 2 0 012 2v5a2 2 0 01-2 2H4a2 2 0 01-2-2v-5a2 2 0 012-2h1V8zm3-1a1 1 0 112 0v1H8V7z"
-                              clipRule="evenodd" // <-- Problematic attribute
-                            />
-                          </svg>
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 text-sm text-gray-600 line-clamp-2">
-                      {project.abstract}
-                    </div>
-                  </div>
-                </td>
-
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  <div className="text-sm text-gray-900">
-                    {project.created_by_name}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {project.created_by_email}
-                  </div>
-                </td>
-
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  <div className="text-sm text-gray-900">
-                    {project.team_name || "Solo"}
-                  </div>
-                </td>
-
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  <div className="text-sm text-gray-900">
-                    {project.category === "mini"
-                      ? "Mini"
-                      : project.category === "full"
-                      ? "Full"
-                      : project.category || "-"}
-                  </div>
-                </td>
-
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  <div className="text-sm text-gray-900">
-                    {project.department || "-"}
-                  </div>
-                </td>
-
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  {getStatusBadge(project.status)}
-                </td>
-
-                <td className="px-3 py-2 whitespace-normal break-words">
-                  <div className="text-sm text-gray-900">
-                    {project.guide_name || "Not Assigned"}
-                  </div>
-                </td>
-
-                <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                  {project.created_at
-                    ? new Date(project.created_at).toLocaleDateString()
-                    : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
 
 const EmptyState = ({
   selectedBatch,
@@ -169,7 +13,7 @@ const EmptyState = ({
   selectedType,
   clearFilters,
 }) => (
-  <div className="flex flex-col items-center justify-center p-12 bg-white rounded-lg shadow">
+  <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-lg">
     <div className="w-48 h-48 mb-8">
       <img
         src="https://illustrations.popsy.co/amber/taking-notes.svg"
@@ -189,7 +33,7 @@ const EmptyState = ({
     </p>
     <button
       onClick={clearFilters}
-      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow hover:shadow-md transition-all duration-200 hover:scale-105"
     >
       Clear Filters
     </button>
@@ -222,7 +66,7 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
             Project.getMyGuidedProjects(),
             Batch.getAllBatches(),
             Department.getAllDepartments(),
-          ]
+          ],
         );
 
         setAllProjects(allRes?.data || allRes || []);
@@ -230,10 +74,10 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
         setGuidedProjects(guidedRes?.data || guidedRes || []);
 
         const batchList = (batchRes?.data || batchRes || []).map(
-          (b) => b.batch_name
+          (b) => b.batch_name,
         );
         const deptList = (deptRes?.data || deptRes || []).map(
-          (d) => d.dept_name
+          (d) => d.dept_name,
         );
         setBatches(["All Batches", ...batchList]);
         setDepartments(["All Departments", ...deptList]);
@@ -285,14 +129,41 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
   return (
     <div
       className={`min-h-screen ${
-        noGradient ? "" : "bg-gradient-to-b from-blue-50 to-white"
+        noGradient
+          ? ""
+          : "bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden"
       }`}
     >
+      {!noGradient && (
+        <>
+          {/* Animated background blobs borrowed from Faculty Directory */}
+          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+
+          <style>{`
+            @keyframes blob {
+              0%, 100% { transform: translate(0, 0) scale(1); }
+              33% { transform: translate(30px, -50px) scale(1.1); }
+              66% { transform: translate(-20px, 20px) scale(0.9); }
+            }
+            .animate-blob {
+              animation: blob 7s infinite;
+            }
+            .animation-delay-2000 {
+              animation-delay: 2s;
+            }
+            .animation-delay-4000 {
+              animation-delay: 4s;
+            }
+          `}</style>
+        </>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-1 py-8">
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-4xl py-2 font-bold bg-clip-text text-transparent bg-gradient-to-b from-gray-600 to-gray-900">
+              <h1 className="text-4xl py-2 font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600">
                 Projects
               </h1>
               <p className="text-gray-600 mt-2">
@@ -301,7 +172,7 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
             </div>
             <button
               onClick={() => navigate("/projects/create")}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-md flex items-center gap-2"
+              className="cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl shadow-md hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 hover:brightness-110 flex items-center gap-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -320,7 +191,7 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
           </div>
         </div>
 
-        <div className="mb-6 bg-white p-6 rounded-xl shadow-sm flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
+        <div className="mb-6 bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-lg flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0 relative z-40 overflow-visible">
           <DropDown
             data={batches}
             name={selectedBatch}
@@ -336,23 +207,23 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
             name={selectedType}
             setter={setSelectedType}
           />
-          <nav className="flex space-x-4 bg-gray-100 p-1 rounded-lg">
+          <nav className="flex space-x-2 bg-gradient-to-r from-blue-50 to-white p-1 rounded-full shadow-inner">
             <button
               onClick={() => setActiveTab("all")}
-              className={`py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+              className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
                 activeTab === "all"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-white text-blue-600 shadow"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
               }`}
             >
               All Projects ({allProjects.length})
             </button>
             <button
               onClick={() => setActiveTab("mine")}
-              className={`py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+              className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
                 activeTab === "mine"
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-white text-blue-600 shadow"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
               }`}
             >
               My Projects ({myProjects.length})
@@ -360,10 +231,10 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
             {showGuided && (
               <button
                 onClick={() => setActiveTab("guided")}
-                className={`py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-200 ${
                   activeTab === "guided"
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-white text-blue-600 shadow"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
                 }`}
               >
                 Guided Projects ({guidedProjects.length})
@@ -383,7 +254,15 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
                 clearFilters={clearFilters}
               />
             ) : (
-              <ProjectTable projects={filtered} navigate={navigate} />
+              <div className="flex flex-col gap-6">
+                {filtered.map((p) => (
+                  <ProjectCard
+                    key={p.project_id || p.id}
+                    project={p}
+                    navigate={navigate}
+                  />
+                ))}
+              </div>
             );
           })()}
 
@@ -398,7 +277,15 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
                 clearFilters={clearFilters}
               />
             ) : (
-              <ProjectTable projects={filtered} navigate={navigate} />
+              <div className="flex flex-col gap-6">
+                {filtered.map((p) => (
+                  <ProjectCard
+                    key={p.project_id || p.id}
+                    project={p}
+                    navigate={navigate}
+                  />
+                ))}
+              </div>
             );
           })()}
 
@@ -414,10 +301,17 @@ const Projects = ({ showGuided = true, noGradient = false }) => {
                 clearFilters={clearFilters}
               />
             ) : (
-              <ProjectTable projects={filtered} navigate={navigate} />
+              <div className="flex flex-col gap-6">
+                {filtered.map((p) => (
+                  <ProjectCard
+                    key={p.project_id || p.id}
+                    project={p}
+                    navigate={navigate}
+                  />
+                ))}
+              </div>
             );
           })()}
-
       </div>
     </div>
   );

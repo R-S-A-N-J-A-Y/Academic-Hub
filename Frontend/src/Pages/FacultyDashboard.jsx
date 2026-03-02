@@ -2,8 +2,24 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Faculty from "../api/Faculty";
 import Loader from "../Components/Loader";
-import { Mail, Linkedin, Github } from "lucide-react";
+import {
+  Mail,
+  Linkedin,
+  Github,
+  CheckCircle,
+  RotateCw,
+  XCircle,
+  TrendingUp,
+} from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
+
+const StatCard = ({ label, value, Icon }) => (
+  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 flex flex-col items-start transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+    {Icon && <Icon className="h-6 w-6 text-blue-500 mb-3" />}
+    <span className="text-sm text-gray-500 mb-1">{label}</span>
+    <span className="text-4xl font-bold text-gray-900">{value}</span>
+  </div>
+);
 
 const FacultyDashboard = () => {
   const navigate = useNavigate();
@@ -42,11 +58,11 @@ const FacultyDashboard = () => {
       <div
         key={p.project_id}
         onClick={() => navigate(`/projects/${p.project_id}`)}
-        className="relative flex flex-col justify-center items-center p-5 bg-white rounded-xl shadow hover:shadow-lg transition-transform transform hover:scale-[1.03] cursor-pointer min-h-[180px]"
+        className="relative flex flex-col justify-center items-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-transform transform hover:scale-[1.03] cursor-pointer min-h-[200px]"
       >
         {p.project_type && (
           <span
-            className={`absolute top-3 right-2 text-xs px-2 py-0.5 rounded-full ${
+            className={`absolute top-4 right-4 text-xs px-3 py-1 rounded-full font-medium ${
               p.project_type === "full"
                 ? "bg-purple-100 text-purple-700"
                 : "bg-indigo-100 text-indigo-700"
@@ -56,20 +72,22 @@ const FacultyDashboard = () => {
           </span>
         )}
 
-        <div className="text-center">
-          <h4 className="text-lg font-bold text-gray-900 mb-2">{p.title}</h4>
+        <div className="text-center w-full">
+          <h4 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
+            {p.title}
+          </h4>
 
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mb-2">
             Status:{" "}
             <span
-              className={`px-2 py-0.5 rounded-full text-white text-xs ${
+              className={`inline-block px-2.5 py-0.5 rounded-full text-white text-xs font-medium ${
                 p.status === "completed"
                   ? "bg-green-600"
                   : p.status === "in-progress"
-                  ? "bg-blue-500"
-                  : p.status === "rejected"
-                  ? "bg-red-500"
-                  : "bg-gray-400"
+                    ? "bg-blue-500"
+                    : p.status === "rejected"
+                      ? "bg-red-500"
+                      : "bg-gray-400"
               }`}
             >
               {p.status}
@@ -77,24 +95,24 @@ const FacultyDashboard = () => {
           </p>
 
           {p.ispublished && (
-            <div className="mt-3 text-sm text-gray-700">
+            <div className="mt-4 text-sm">
               {p.paper_link ? (
                 <a
                   href={p.paper_link}
                   target="_blank"
                   rel="noreferrer"
-                  className="underline text-blue-600 font-medium"
+                  className="text-blue-600 font-medium hover:underline"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  📄 View Paper
+                  View Paper
                 </a>
               ) : (
-                <span className="italic">
+                <span className="text-gray-600 text-xs">
                   {p.conference_name ?? "Conference"}{" "}
-                  {p.conference_year ? `(${p.conference_year})` : ""}{" "}
+                  {p.conference_year ? `(${p.conference_year})` : ""}
                   {p.conference_status === "prize" && (
                     <span className="ml-2 text-green-600 font-semibold">
-                      🏆 Prize Winner
+                      Prize Winner
                     </span>
                   )}
                 </span>
@@ -116,204 +134,137 @@ const FacultyDashboard = () => {
     );
 
   return (
-    <div className="flex flex-col min-h-screen py-6 px-4 bg-gray-50">
-      <div className="max-w-7xl mx-auto w-full flex flex-col flex-grow">
-        <div className="bg-white shadow rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between mb-10">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700">
-              {data.mentor?.name?.charAt(0) ?? "F"}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {data.mentor?.name}
-              </h2>
-              <p className="text-sm text-gray-600">{data.mentor?.dept}</p>
-              <p className="text-sm text-gray-500">{data.mentor?.email}</p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      {/* animated background blobs */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      <style>{`@keyframes blob {0%,100%{transform:translate(0,0)scale(1);}33%{transform:translate(30px,-50px)scale(1.1);}66%{transform:translate(-20px,20px)scale(0.9);}}.animate-blob{animation:blob 7s infinite;}.animation-delay-2000{animation-delay:2s;}.animation-delay-4000{animation-delay:4s;}`}</style>
 
-          <div className="flex gap-4 mt-4 sm:mt-0">
-            <a href="#" className="text-gray-500 hover:text-blue-600">
-              <Linkedin size={20} />
-            </a>
-            <a href="#" className="text-gray-500 hover:text-gray-900">
-              <Github size={20} />
-            </a>
-            <a
-              href={`mailto:${data.mentor?.email}`}
-              className="text-gray-500 hover:text-red-600"
-            >
-              <Mail size={20} />
-            </a>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          {[
-            {
-              label: "Completed",
-              value: data.stats.completed,
-              color: "bg-green-100 text-green-700",
-            },
-            {
-              label: "In Progress",
-              value: data.stats.in_progress,
-              color: "bg-blue-100 text-blue-700",
-            },
-            {
-              label: "Rejected",
-              value: data.stats.rejected,
-              color: "bg-red-100 text-red-700",
-            },
-            {
-              label: "Published",
-              value: data.stats.published,
-              color: "bg-yellow-100 text-yellow-700",
-            },
-          ].map((stat, idx) => (
-            <div
-              key={idx}
-              className="rounded-xl shadow bg-white p-6 text-center hover:shadow-md transition flex flex-col justify-center"
-            >
-              <div className={`text-sm font-medium ${stat.color}`}>
-                {stat.label}
+      <div className="relative z-10 flex flex-col min-h-screen py-8 px-4">
+        <div className="max-w-7xl mx-auto w-full flex flex-col flex-grow">
+          <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between mb-12">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+                {data.mentor?.name?.charAt(0) ?? "F"}
               </div>
-              <div className="text-3xl font-bold mt-2">{stat.value}</div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {data.mentor?.name}
+                </h1>
+                <p className="text-sm text-gray-600 mt-1">
+                  {data.mentor?.dept}
+                </p>
+                <p className="text-sm text-gray-500">{data.mentor?.email}</p>
+              </div>
             </div>
-          ))}
-        </div>
 
-        <div className="mb-12 flex-grow">
-          <h3 className="text-xl font-semibold mb-4 text-gray-900">
-            📌 Personal Projects
-          </h3>
-          {data.personal_projects.length === 0 ? (
-            <div className="flex justify-center items-center h-32 bg-white rounded-xl shadow">
-              <p className="text-sm text-gray-500">No projects found.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {data.personal_projects.map(renderProjectItem)}
-            </div>
-          )}
-        </div>
-
-        <div className="flex-grow mb-12">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-            <div className="flex items-center gap-3">
-              <h3 className="text-xl font-semibold text-gray-900">
-                🎓 Guided Projects
-              </h3>
-              <select
-                value={guidedFilter}
-                onChange={(e) => setGuidedFilter(e.target.value)}
-                className="text-sm border border-gray-300 rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition"
+            <div className="flex gap-4 mt-6 sm:mt-0">
+              <a
+                href="#"
+                className="text-gray-400 hover:text-blue-600 transition-colors"
               >
-                <option value="all">All Projects</option>
-                <option value="mini">Mini Projects</option>
-                <option value="full">Full Projects</option>
-              </select>
-            </div>
-            <div className="text-sm text-gray-500">
-              {data.guided_projects.length} project
-              {data.guided_projects.length !== 1 ? "s" : ""}
+                <Linkedin size={24} />
+              </a>
+              <a
+                href="#"
+                className="text-gray-400 hover:text-gray-900 transition-colors"
+              >
+                <Github size={24} />
+              </a>
+              <a
+                href={`mailto:${data.mentor?.email}`}
+                className="text-gray-400 hover:text-red-600 transition-colors"
+              >
+                <Mail size={24} />
+              </a>
             </div>
           </div>
 
-          <div className="border-b border-gray-200 mb-6"></div>
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+            <StatCard
+              Icon={CheckCircle}
+              label="Completed"
+              value={data.stats.completed}
+            />
+            <StatCard
+              Icon={RotateCw}
+              label="In Progress"
+              value={data.stats.in_progress}
+            />
+            <StatCard
+              Icon={XCircle}
+              label="Rejected"
+              value={data.stats.rejected}
+            />
+            <StatCard
+              Icon={TrendingUp}
+              label="Published"
+              value={data.stats.published}
+            />
+          </div>
 
-          {(() => {
-            const filteredProjects = data.guided_projects.filter((p) =>
-              guidedFilter === "all" ? true : p.project_type === guidedFilter
-            );
+          <div className="mb-12 flex-grow">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">
+              Personal Projects
+            </h3>
+            {data.personal_projects.length === 0 ? (
+              <div className="flex justify-center items-center h-40 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+                <p className="text-gray-500">No projects found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {data.personal_projects.map(renderProjectItem)}
+              </div>
+            )}
+          </div>
 
-            if (filteredProjects.length === 0) {
+          <div className="flex-grow mb-12">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+              <h3 className="text-2xl font-bold text-gray-900">
+                Guided Projects
+              </h3>
+              <div className="flex items-center gap-3">
+                <select
+                  value={guidedFilter}
+                  onChange={(e) => setGuidedFilter(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-full px-4 py-2 bg-white/80 backdrop-blur-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                >
+                  <option value="all">All Projects</option>
+                  <option value="mini">Mini Projects</option>
+                  <option value="full">Full Projects</option>
+                </select>
+                <span className="text-sm text-gray-600 whitespace-nowrap">
+                  {data.guided_projects.length} project
+                  {data.guided_projects.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+
+            <div className="border-b border-gray-200 mb-6"></div>
+
+            {(() => {
+              const filteredProjects = data.guided_projects.filter((p) =>
+                guidedFilter === "all" ? true : p.project_type === guidedFilter,
+              );
+
+              if (filteredProjects.length === 0) {
+                return (
+                  <div className="flex justify-center items-center h-40 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
+                    <p className="text-gray-500">
+                      No projects found for this filter.
+                    </p>
+                  </div>
+                );
+              }
+
               return (
-                <div className="flex justify-center items-center h-40 bg-white rounded-xl shadow-md">
-                  <p className="text-sm text-gray-500">
-                    No projects found for this filter.
-                  </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {filteredProjects.map((p) => renderProjectItem(p))}
                 </div>
               );
-            }
-
-            return (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {filteredProjects.map((p) => (
-                  <div
-                    key={p.project_id}
-                    onClick={() => navigate(`/projects/${p.project_id}`)}
-                    className="relative flex flex-col justify-center items-center p-5 bg-white rounded-xl shadow hover:shadow-lg transition-transform transform hover:scale-[1.03] cursor-pointer min-h-[180px]"
-                  >
-                    {p.project_type && (
-                      <span
-                        className={`absolute top-3 right-2 text-xs px-2 py-0.5 rounded-full ${
-                          p.project_type === "full"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-indigo-100 text-indigo-700"
-                        }`}
-                      >
-                        {p.project_type === "full"
-                          ? "Full Project"
-                          : "Mini Project"}
-                      </span>
-                    )}
-
-                    <div className="text-center">
-                      <h4 className="text-2xl font-bold text-gray-900 mb-3">
-                        {p.title}
-                      </h4>
-
-                      <p className="text-xs text-gray-500 mt-1">
-                        Status:{" "}
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-white text-xs ${
-                            p.status === "completed"
-                              ? "bg-green-600"
-                              : p.status === "in-progress"
-                              ? "bg-blue-500"
-                              : p.status === "rejected"
-                              ? "bg-red-500"
-                              : "bg-gray-400"
-                          }`}
-                        >
-                          {p.status}
-                        </span>
-                      </p>
-
-                      {p.ispublished && (
-                        <div className="mt-3 text-sm text-gray-700">
-                          {p.paper_link ? (
-                            <a
-                              href={p.paper_link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="underline text-blue-600 font-medium"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              📄 View Paper
-                            </a>
-                          ) : (
-                            <span className="italic">
-                              {p.conference_name ?? "Conference"}{" "}
-                              {p.conference_year
-                                ? `(${p.conference_year})`
-                                : ""}{" "}
-                              {p.conference_status === "prize" && (
-                                <span className="ml-2 text-green-600 font-semibold">
-                                  🏆 Prize Winner
-                                </span>
-                              )}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
+            })()}
+          </div>
         </div>
       </div>
     </div>

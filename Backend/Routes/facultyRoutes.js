@@ -3,6 +3,7 @@ const {
   getFaculties,
   getAllFaculties,
   updateIsGuide,
+  getGuideCount,
 } = require("../Handlers/FacultyHandler");
 const { getMentorStats } = require("../Handlers/MentorHandler");
 const authenticateToken = require("../Middlewares/authMiddleware");
@@ -14,6 +15,9 @@ route.get("/mentors/:id/stats", getMentorStats);
 
 // GET /faculty/all/:id - Fetch all faculties for a department
 route.get("/all/:id", getAllFaculties);
+
+// GET /faculty/count/:id - Fetch number of guide/mentor faculty in department
+route.get("/count/:id", getGuideCount);
 
 // GET /faculty/:id - Fetch guide faculties for a department (used by Mentors page)
 route.get("/:id", getFaculties);

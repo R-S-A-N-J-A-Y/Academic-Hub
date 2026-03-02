@@ -36,6 +36,20 @@ const getAllFaculties = async (req, res) => {
   }
 };
 
+// new endpoint for counting guides/mentors
+const getGuideCount = async (req, res) => {
+  try {
+    const deptId = req.params.id;
+    const count = await facultyController.fetchGuideCount(deptId);
+    res
+      .status(200)
+      .json({ success: true, data: { count }, message: "Guide count fetched" });
+  } catch (error) {
+    console.error("Error fetching guide count:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 const updateIsGuide = async (req, res) => {
   try {
     // ensure only admin can perform this action
@@ -62,4 +76,9 @@ const updateIsGuide = async (req, res) => {
   }
 };
 
-module.exports = { getFaculties, getAllFaculties, updateIsGuide };
+module.exports = {
+  getFaculties,
+  getAllFaculties,
+  updateIsGuide,
+  getGuideCount,
+};

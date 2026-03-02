@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Project from "../api/Project";
+import Faculty from "../api/Faculty";
 import { axiosInstance } from "../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import Loader from "../Components/Loader";
+import DropDown from "../Components/DropDown";
 import {
   BarChart,
   Bar,
@@ -17,14 +19,44 @@ import {
   LineChart,
   Line,
 } from "recharts";
-import { Lock } from "lucide-react";
+import {
+  Lock,
+  ClipboardList,
+  PlusCircle,
+  RefreshCw,
+  CheckCircle,
+  Building,
+  UserCheck,
+  Tag,
+} from "lucide-react";
 
-const StatCard = ({ label, value }) => (
-  <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-start transition transform hover:scale-105">
+const StatCard = ({ label, value, Icon }) => (
+  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 flex flex-col items-start transition-transform duration-300 hover:scale-105 hover:shadow-2xl">
+    {Icon && <Icon className="h-6 w-6 text-blue-500 mb-2" />}
     <span className="text-sm text-gray-500">{label}</span>
     <span className="text-3xl font-bold text-gray-900">{value}</span>
   </div>
 );
+
+// helper for recent-project status badges
+const getStatusBadge = (status) => {
+  const colors = {
+    pending: "bg-yellow-100 text-yellow-800",
+    new: "bg-blue-100 text-blue-800",
+    "in-progress": "bg-gradient-to-r from-blue-200 to-blue-300 text-blue-800",
+    published: "bg-green-100 text-green-800",
+  };
+  const label = String(status || "")
+    .replace(/[-\s]+/g, " ")
+    .toUpperCase();
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[status] || "bg-gray-100 text-gray-800"}`}
+    >
+      {label}
+    </span>
+  );
+};
 
 const CustomBarTooltip = ({ active, payload, label, primaryColor }) => {
   if (active && payload && payload.length) {
@@ -140,7 +172,7 @@ const ChartsSection = ({ projects, primaryColor }) => {
   return (
     <div className="grid md:grid-cols-3 gap-6">
       {/* Projects per Batch - Bar Chart */}
-      <div className="bg-white rounded-2xl shadow-lg p-5">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-5 transition-shadow duration-300 hover:shadow-2xl">
         <h2 className="font-semibold text-gray-800 mb-3">Projects per Batch</h2>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
@@ -164,7 +196,7 @@ const ChartsSection = ({ projects, primaryColor }) => {
       </div>
 
       {/* Project Status Distribution - Pie Chart */}
-      <div className="bg-white rounded-2xl shadow-lg p-5">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-5 transition-shadow duration-300 hover:shadow-2xl">
         <h2 className="font-semibold text-gray-800 mb-3">
           Project Status Distribution
         </h2>
@@ -190,7 +222,7 @@ const ChartsSection = ({ projects, primaryColor }) => {
       </div>
 
       {/* New Projects Pending Guide Review Over Time - Line Chart */}
-      <div className="bg-white rounded-2xl shadow-lg p-5">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-5 transition-shadow duration-300 hover:shadow-2xl">
         <h2 className="font-semibold text-gray-800 mb-3">
           New Projects Pending Guide Review Over Time
         </h2>
@@ -226,18 +258,27 @@ const AdminDashboard = () => {
   const [batches, setBatches] = useState([]);
   const [filters, setFilters] = useState({ batch: "" });
   const [coordinatorDeptName, setCoordinatorDeptName] = useState("");
+  const [mentorsCount, setMentorsCount] = useState(0);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        const [projectsRes, deptsRes, batchesRes] = await Promise.all([
+        // base requests
+        const requests = [
           auth?.role === "coordinator"
             ? Project.getAllProjectsByDepartment(auth.dept_id)
             : Project.getAllProjects(),
           axiosInstance.get("/departments"),
           axiosInstance.get("/batches"),
-        ]);
+        ];
+        // if coordinator, also fetch mentor count
+        if (auth?.role === "coordinator") {
+          requests.push(Faculty.getGuideCount(auth.dept_id));
+        }
+
+        const [projectsRes, deptsRes, batchesRes, mentorsRes] =
+          await Promise.all(requests);
 
         setProjects(projectsRes.data || projectsRes);
         setBatches(batchesRes.data || []);
@@ -246,6 +287,15 @@ const AdminDashboard = () => {
             (d) => String(d.dept_id) === String(auth.dept_id),
           );
           if (deptObj?.dept_name) setCoordinatorDeptName(deptObj.dept_name);
+          // mentorsRes at index 3 may already be data object if using API helper
+          if (mentorsRes) {
+            setMentorsCount(
+              mentorsRes.count ||
+                mentorsRes.data?.count ||
+                mentorsRes.data?.data?.count ||
+                0,
+            );
+          }
         }
       } catch (err) {
         console.error("Failed fetching dashboard data", err);
@@ -317,10 +367,10 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="p-6 space-y-12 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-12 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
       {/* Header with batch dropdown next to title */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
+        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600">
           {dashboardTitle}
           {isCoordinator && coordinatorDeptName ? (
             <span className="ml-2 text-lg font-semibold text-gray-500">
@@ -328,21 +378,16 @@ const AdminDashboard = () => {
             </span>
           ) : null}
         </h1>
-        <div className="flex items-center gap-3">
-          <select
-            className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={filters.batch}
-            onChange={(e) => setFilters({ batch: e.target.value })}
-          >
-            <option value="">All Batches</option>
-            {batches.map((b) => (
-              <option key={b.batch_id || b.batch_name} value={b.batch_name}>
-                {b.batch_name}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-3 bg-white/70 backdrop-blur-md p-3 rounded-2xl shadow-inner">
+          <DropDown
+            data={["All Batches", ...batches.map((b) => b.batch_name)]}
+            name={filters.batch || "All Batches"}
+            setter={(val) => {
+              setFilters({ batch: val === "All Batches" ? "" : val });
+            }}
+          />
           <button
-            className="px-5 py-2 bg-[#155dfc] text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-5 py-2 bg-white/50 text-blue-600 border border-blue-300 rounded-full hover:bg-white/70 transition-all duration-200"
             onClick={() => setFilters({ batch: "" })}
           >
             Clear
@@ -351,74 +396,88 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats cards */}
-      <div className="grid md:grid-cols-4 gap-6">
-        <StatCard label="Total Projects (Current Batch)" value={stats.total} />
-        <StatCard label="New Projects" value={stats.newCount} />
-        <StatCard label="In-progress Projects" value={stats.inProgress} />
-        <StatCard label="Published Projects" value={stats.published} />
+      <div className="grid md:grid-cols-5 gap-6">
+        <StatCard
+          Icon={ClipboardList}
+          label="Total Projects (Current Batch)"
+          value={stats.total}
+        />
+        <StatCard
+          Icon={PlusCircle}
+          label="New Projects"
+          value={stats.newCount}
+        />
+        <StatCard
+          Icon={RefreshCw}
+          label="In-progress Projects"
+          value={stats.inProgress}
+        />
+        <StatCard
+          Icon={CheckCircle}
+          label="Published Projects"
+          value={stats.published}
+        />
+        {isCoordinator && (
+          <StatCard Icon={UserCheck} label="Mentors" value={mentorsCount} />
+        )}
       </div>
 
       {/* Charts */}
       <ChartsSection projects={filteredProjects} primaryColor="#155dfc" />
 
       {/* Recent Projects Table */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="p-5 flex items-center justify-between bg-[#155dfc]/10">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-5 flex items-center justify-between border-b border-gray-200">
           <h2 className="font-semibold text-gray-800 text-lg">
             {`Recent Projects${coordinatorDeptName ? ` (${coordinatorDeptName})` : ""}`}
           </h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm divide-y divide-gray-200">
-            <thead className="bg-[#155dfc]/10 text-gray-700">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium">Title</th>
-                <th className="px-3 py-2 text-left font-medium">Batch</th>
-                <th className="px-3 py-2 text-left font-medium">Status</th>
-                <th className="px-3 py-2 text-left font-medium">Guide</th>
-                <th className="px-3 py-2 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td className="px-3 py-4 text-center" colSpan={5}>
-                    Loading...
-                  </td>
-                </tr>
-              ) : recentProjects.length === 0 ? (
-                <tr>
-                  <td className="px-3 py-4 text-center" colSpan={5}>
-                    No projects found
-                  </td>
-                </tr>
-              ) : (
-                recentProjects.map((p) => (
-                  <tr key={p.project_id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 font-medium text-gray-900 flex items-center gap-2">
-                      {p.visibility && p.visibility !== "public" ? (
-                        <Lock size={16} className="text-gray-500" />
-                      ) : null}
-                      <span>{p.title}</span>
-                    </td>
-                    <td className="px-3 py-2">{p.batch_name}</td>
-                    <td className="px-3 py-2 capitalize">
-                      {p.status || "new"}
-                    </td>
-                    <td className="px-3 py-2">{p.guide_name || "—"}</td>
-                    <td className="px-3 py-2 text-right">
-                      <button
-                        className="px-2 py-1 text-[#155dfc] font-medium hover:underline"
-                        onClick={() => navigate(`/projects/${p.project_id}`)}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="p-5 space-y-4">
+          {loading ? (
+            <div className="text-center text-gray-500">Loading...</div>
+          ) : recentProjects.length === 0 ? (
+            <div className="text-center text-gray-500">No projects found</div>
+          ) : (
+            recentProjects.map((p) => (
+              <div
+                key={p.project_id}
+                className="bg-white rounded-2xl shadow-sm p-4 transition-shadow duration-300 hover:shadow-md"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-2">
+                    {p.visibility && p.visibility !== "public" && (
+                      <Lock size={16} className="text-gray-500" />
+                    )}
+                    <span className="font-bold text-gray-900">{p.title}</span>
+                    {p.category && <Tag size={16} className="text-gray-400" />}
+                  </div>
+                  <div>{getStatusBadge((p.status || "new").toLowerCase())}</div>
+                </div>
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+                  <div className="flex items-center gap-1">
+                    <ClipboardList size={14} className="text-gray-500" />
+                    {p.batch_name}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <UserCheck size={14} className="text-gray-500" />
+                    {p.guide_name || "—"}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Building size={14} className="text-gray-500" />
+                    {p.department || p.dept_name || "—"}
+                  </div>
+                </div>
+                <div className="mt-3 border-t border-gray-200 pt-2 text-right">
+                  <button
+                    className="text-blue-600 font-medium hover:underline"
+                    onClick={() => navigate(`/projects/${p.project_id}`)}
+                  >
+                    View
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

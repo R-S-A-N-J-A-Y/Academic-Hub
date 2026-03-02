@@ -43,6 +43,16 @@ class Faculty {
       throw err;
     }
   }
+
+  static async getGuideCount(deptId) {
+    try {
+      const res = await axiosInstance.get(`/faculty/count/${deptId}`);
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching guide count:", err);
+      throw err;
+    }
+  }
 }
 
 export default Faculty;
