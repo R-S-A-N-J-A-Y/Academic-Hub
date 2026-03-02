@@ -7,9 +7,9 @@ const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5000",
+    origin: ["http://localhost:5000", "https://academic-hub-01.vercel.app"],
     credentials: true,
-  })
+  }),
 );
 
 app.use("/auth", require("./Routes/authRoutes"));
