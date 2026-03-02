@@ -30,9 +30,16 @@ const CustomBarTooltip = ({ active, payload, label, primaryColor }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 border shadow-md rounded-lg" style={{ borderColor: primaryColor }}>
-        <p className="text-sm font-semibold mb-1" style={{ color: primaryColor }}>{`Batch: ${label}`}</p>
-        <p className="text-xs text-gray-700">{`Total Projects: `}
+      <div
+        className="bg-white p-3 border shadow-md rounded-lg"
+        style={{ borderColor: primaryColor }}
+      >
+        <p
+          className="text-sm font-semibold mb-1"
+          style={{ color: primaryColor }}
+        >{`Batch: ${label}`}</p>
+        <p className="text-xs text-gray-700">
+          {`Total Projects: `}
           <span className="font-bold">{data.count}</span>
         </p>
       </div>
@@ -46,11 +53,16 @@ const CustomPieTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 border shadow-md rounded-lg" style={{ borderColor: data.color }}>
-        <p className="text-sm font-semibold mb-1" style={{ color: data.color }}>{data.name}</p>
+      <div
+        className="bg-white p-3 border shadow-md rounded-lg"
+        style={{ borderColor: data.color }}
+      >
+        <p className="text-sm font-semibold mb-1" style={{ color: data.color }}>
+          {data.name}
+        </p>
         <p className="text-xs text-gray-700">
-            {`Projects: `}
-            <span className="font-bold">{data.value}</span>
+          {`Projects: `}
+          <span className="font-bold">{data.value}</span>
         </p>
       </div>
     );
@@ -60,19 +72,25 @@ const CustomPieTooltip = ({ active, payload }) => {
 
 // 3. Custom Tooltip for Line Chart (New Projects Over Time)
 const CustomLineTooltip = ({ active, payload, label, primaryColor }) => {
-    if (active && payload && payload.length) {
-        const data = payload[0].payload;
-        return (
-            <div className="bg-white p-3 border shadow-md rounded-lg" style={{ borderColor: primaryColor }}>
-                <p className="text-sm font-semibold mb-1" style={{ color: primaryColor }}>{`Month: ${label}`}</p>
-                <p className="text-xs text-gray-700">
-                    {`New Projects: `}
-                    <span className="font-bold">{data.count}</span>
-                </p>
-            </div>
-        );
-    }
-    return null;
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div
+        className="bg-white p-3 border shadow-md rounded-lg"
+        style={{ borderColor: primaryColor }}
+      >
+        <p
+          className="text-sm font-semibold mb-1"
+          style={{ color: primaryColor }}
+        >{`Month: ${label}`}</p>
+        <p className="text-xs text-gray-700">
+          {`New Projects: `}
+          <span className="font-bold">{data.count}</span>
+        </p>
+      </div>
+    );
+  }
+  return null;
 };
 
 const ChartsSection = ({ projects, primaryColor }) => {
@@ -83,15 +101,20 @@ const ChartsSection = ({ projects, primaryColor }) => {
       const key = p.batch_name || "Unknown";
       map.set(key, (map.get(key) || 0) + 1);
     }
-    return Array.from(map.entries()).map(([batch, count]) => ({ batch, count }));
+    return Array.from(map.entries()).map(([batch, count]) => ({
+      batch,
+      count,
+    }));
   }, [projects]);
 
   const statusPieData = useMemo(() => {
     const total = projects.length;
-    const published = projects.filter((p) => Boolean(p.ispublished) || Boolean(p.paper_link)).length;
-    // console.log(published)
-    // console.log(projects)
-    const inProgress = projects.filter((p) => p.status === "in-progress").length;
+    const published = projects.filter(
+      (p) => Boolean(p.ispublished) || Boolean(p.paper_link),
+    ).length;
+    const inProgress = projects.filter(
+      (p) => p.status === "in-progress",
+    ).length;
     const pending = Math.max(total - published - inProgress, 0);
     return [
       { name: "Published", value: published, color: primaryColor },
@@ -127,7 +150,7 @@ const ChartsSection = ({ projects, primaryColor }) => {
               {/* Updated Tooltip for Bar Chart */}
               <ReTooltip
                 content={<CustomBarTooltip primaryColor={primaryColor} />}
-                cursor={{ fill: 'rgba(230, 230, 230, 0.5)' }} // Light gray transparent cursor
+                cursor={{ fill: "rgba(230, 230, 230, 0.5)" }} // Light gray transparent cursor
               />
               <Bar
                 dataKey="count"
@@ -142,11 +165,19 @@ const ChartsSection = ({ projects, primaryColor }) => {
 
       {/* Project Status Distribution - Pie Chart */}
       <div className="bg-white rounded-2xl shadow-lg p-5">
-        <h2 className="font-semibold text-gray-800 mb-3">Project Status Distribution</h2>
+        <h2 className="font-semibold text-gray-800 mb-3">
+          Project Status Distribution
+        </h2>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={statusPieData} dataKey="value" nameKey="name" outerRadius={80} label>
+              <Pie
+                data={statusPieData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={80}
+                label
+              >
                 {statusPieData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
@@ -160,15 +191,25 @@ const ChartsSection = ({ projects, primaryColor }) => {
 
       {/* New Projects Pending Guide Review Over Time - Line Chart */}
       <div className="bg-white rounded-2xl shadow-lg p-5">
-        <h2 className="font-semibold text-gray-800 mb-3">New Projects Pending Guide Review Over Time</h2>
+        <h2 className="font-semibold text-gray-800 mb-3">
+          New Projects Pending Guide Review Over Time
+        </h2>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={newOverTimeData}>
               <XAxis dataKey="month" />
               <YAxis allowDecimals={false} />
               {/* NEW: Custom Tooltip for Line Chart */}
-              <ReTooltip content={<CustomLineTooltip primaryColor={primaryColor} />} />
-              <Line type="monotone" dataKey="count" stroke={primaryColor} strokeWidth={2} dot={false} />
+              <ReTooltip
+                content={<CustomLineTooltip primaryColor={primaryColor} />}
+              />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke={primaryColor}
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -178,100 +219,102 @@ const ChartsSection = ({ projects, primaryColor }) => {
 };
 
 const AdminDashboard = () => {
-    const navigate = useNavigate();
-    const { auth } = useAuth();
-    const [loading, setLoading] = useState(true);
-    const [projects, setProjects] = useState([]);
-    const [batches, setBatches] = useState([]);
-    const [filters, setFilters] = useState({ batch: "" });
-    const [coordinatorDeptName, setCoordinatorDeptName] = useState("");
-  
-    useEffect(() => {
-      const fetchAll = async () => {
-        try {
-          setLoading(true);
-          const [projectsRes, deptsRes, batchesRes] = await Promise.all([
-            auth?.role === "coordinator"
-              ? Project.getAllProjectsByDepartment(auth.dept_id)
-              : Project.getAllProjects(),
-            axiosInstance.get("/departments"),
-            axiosInstance.get("/batches"),
-          ]);
-  
-          setProjects(projectsRes.data || projectsRes);
-          setBatches(batchesRes.data || []);
-          if (auth?.role === "coordinator") {
-            const deptObj = (deptsRes.data || []).find(
-              (d) => String(d.dept_id) === String(auth.dept_id)
-            );
-            if (deptObj?.dept_name) setCoordinatorDeptName(deptObj.dept_name);
-          }
-        } catch (err) {
-          console.error("Failed fetching dashboard data", err);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchAll();
-    }, [auth?.role, auth?.dept_id]);
-  
-    // ✅ All hooks stay here — nothing conditional before them
-    const filteredProjects = useMemo(() => {
-      let list = Array.isArray(projects) ? projects : [];
-      if (auth?.role === "coordinator" && coordinatorDeptName) {
-        list = list.filter(
-          (p) => (p.department || p.dept_name) === coordinatorDeptName
-        );
-      }
-      if (filters.batch) {
-        list = list.filter((p) => (p.batch_name || p.batch) === filters.batch);
-      }
-      return list;
-    }, [projects, filters, auth?.role, coordinatorDeptName]);
-  
-    const currentFinalYearBatchName = useMemo(() => {
-      const now = new Date();
-      const startYear = now.getFullYear() - 3;
-      const match = (batches || []).find((b) =>
-        String(b.batch_name).includes(String(startYear))
-      );
-      return match?.batch_name || "";
-    }, [batches]);
-  
-    const stats = useMemo(() => {
-      const inCurrentBatch = filteredProjects.filter(
-        (p) => p.batch_name === currentFinalYearBatchName
-      );
-      const total = inCurrentBatch.length;
-      const published = inCurrentBatch.filter(
-        (p) => Boolean(p.ispublished) || Boolean(p.paper_link)
-      ).length;
-      const inProgress = inCurrentBatch.filter((p) => p.status === "in-progress")
-        .length;
-      const newCount = inCurrentBatch.filter(
-        (p) => (p.status || "new") === "new"
-      ).length;
-      return { total, newCount, inProgress, published };
-    }, [filteredProjects, currentFinalYearBatchName]);
-  
-    const recentProjects = useMemo(() => {
-      return [...filteredProjects]
-        .sort(
-          (a, b) =>
-            new Date(b.created_at || b.updated_at) -
-            new Date(a.created_at || a.updated_at)
-        )
-        .slice(0, 8);
-    }, [filteredProjects]);
-  
-    const isCoordinator = auth?.role === "coordinator";
-    const dashboardTitle = isCoordinator ? "Coordinator Dashboard" : "Admin Dashboard";
+  const navigate = useNavigate();
+  const { auth } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [filters, setFilters] = useState({ batch: "" });
+  const [coordinatorDeptName, setCoordinatorDeptName] = useState("");
 
-  
-    // ✅ Do conditional render here instead
-    if (loading) {
-      return <Loader />;
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        setLoading(true);
+        const [projectsRes, deptsRes, batchesRes] = await Promise.all([
+          auth?.role === "coordinator"
+            ? Project.getAllProjectsByDepartment(auth.dept_id)
+            : Project.getAllProjects(),
+          axiosInstance.get("/departments"),
+          axiosInstance.get("/batches"),
+        ]);
+
+        setProjects(projectsRes.data || projectsRes);
+        setBatches(batchesRes.data || []);
+        if (auth?.role === "coordinator") {
+          const deptObj = (deptsRes.data || []).find(
+            (d) => String(d.dept_id) === String(auth.dept_id),
+          );
+          if (deptObj?.dept_name) setCoordinatorDeptName(deptObj.dept_name);
+        }
+      } catch (err) {
+        console.error("Failed fetching dashboard data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
+  }, [auth?.role, auth?.dept_id]);
+
+  // ✅ All hooks stay here — nothing conditional before them
+  const filteredProjects = useMemo(() => {
+    let list = Array.isArray(projects) ? projects : [];
+    if (auth?.role === "coordinator" && coordinatorDeptName) {
+      list = list.filter(
+        (p) => (p.department || p.dept_name) === coordinatorDeptName,
+      );
     }
+    if (filters.batch) {
+      list = list.filter((p) => (p.batch_name || p.batch) === filters.batch);
+    }
+    return list;
+  }, [projects, filters, auth?.role, coordinatorDeptName]);
+
+  const currentFinalYearBatchName = useMemo(() => {
+    const now = new Date();
+    const startYear = now.getFullYear() - 3;
+    const match = (batches || []).find((b) =>
+      String(b.batch_name).includes(String(startYear)),
+    );
+    return match?.batch_name || "";
+  }, [batches]);
+
+  const stats = useMemo(() => {
+    const list =
+      currentFinalYearBatchName && currentFinalYearBatchName !== ""
+        ? filteredProjects.filter(
+            (p) => p.batch_name === currentFinalYearBatchName,
+          )
+        : filteredProjects;
+
+    const total = list.length;
+    const published = list.filter(
+      (p) => Boolean(p.ispublished) || Boolean(p.paper_link),
+    ).length;
+    const inProgress = list.filter((p) => p.status === "in-progress").length;
+    const newCount = list.filter((p) => (p.status || "new") === "new").length;
+    return { total, newCount, inProgress, published };
+  }, [filteredProjects, currentFinalYearBatchName]);
+
+  const recentProjects = useMemo(() => {
+    return [...filteredProjects]
+      .sort(
+        (a, b) =>
+          new Date(b.created_at || b.updated_at) -
+          new Date(a.created_at || a.updated_at),
+      )
+      .slice(0, 8);
+  }, [filteredProjects]);
+
+  const isCoordinator = auth?.role === "coordinator";
+  const dashboardTitle = isCoordinator
+    ? "Coordinator Dashboard"
+    : "Admin Dashboard";
+
+  // ✅ Do conditional render here instead
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <div className="p-6 space-y-12 bg-gray-50 min-h-screen">
@@ -280,7 +323,9 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold text-gray-900">
           {dashboardTitle}
           {isCoordinator && coordinatorDeptName ? (
-            <span className="ml-2 text-lg font-semibold text-gray-500">— {coordinatorDeptName}</span>
+            <span className="ml-2 text-lg font-semibold text-gray-500">
+              — {coordinatorDeptName}
+            </span>
           ) : null}
         </h1>
         <div className="flex items-center gap-3">
@@ -325,50 +370,55 @@ const AdminDashboard = () => {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm divide-y divide-gray-200">
-  <thead className="bg-[#155dfc]/10 text-gray-700">
-    <tr>
-      <th className="px-3 py-2 text-left font-medium">Title</th>
-      <th className="px-3 py-2 text-left font-medium">Batch</th>
-      <th className="px-3 py-2 text-left font-medium">Status</th>
-      <th className="px-3 py-2 text-left font-medium">Guide</th>
-      <th className="px-3 py-2 text-right font-medium">Actions</th>
-    </tr>
-  </thead>
-  <tbody className="bg-white divide-y divide-gray-200">
-    {loading ? (
-      <tr>
-        <td className="px-3 py-4 text-center" colSpan={5}>Loading...</td>
-      </tr>
-    ) : recentProjects.length === 0 ? (
-      <tr>
-        <td className="px-3 py-4 text-center" colSpan={5}>No projects found</td>
-      </tr>
-    ) : (
-      recentProjects.map((p) => (
-         <tr key={p.project_id} className="hover:bg-gray-50">
-           <td className="px-3 py-2 font-medium text-gray-900 flex items-center gap-2">
-             {p.visibility && p.visibility !== "public" ? (
-               <Lock size={16} className="text-gray-500" />
-             ) : null}
-             <span>{p.title}</span>
-           </td>
-          <td className="px-3 py-2">{p.batch_name}</td>
-          <td className="px-3 py-2 capitalize">{p.status || "new"}</td>
-          <td className="px-3 py-2">{p.guide_name || "—"}</td>
-          <td className="px-3 py-2 text-right">
-            <button
-              className="px-2 py-1 text-[#155dfc] font-medium hover:underline"
-              onClick={() => navigate(`/projects/${p.project_id}`)}
-            >
-              View
-            </button>
-          </td>
-        </tr>
-      ))
-    )}
-  </tbody>
-</table>
-
+            <thead className="bg-[#155dfc]/10 text-gray-700">
+              <tr>
+                <th className="px-3 py-2 text-left font-medium">Title</th>
+                <th className="px-3 py-2 text-left font-medium">Batch</th>
+                <th className="px-3 py-2 text-left font-medium">Status</th>
+                <th className="px-3 py-2 text-left font-medium">Guide</th>
+                <th className="px-3 py-2 text-right font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td className="px-3 py-4 text-center" colSpan={5}>
+                    Loading...
+                  </td>
+                </tr>
+              ) : recentProjects.length === 0 ? (
+                <tr>
+                  <td className="px-3 py-4 text-center" colSpan={5}>
+                    No projects found
+                  </td>
+                </tr>
+              ) : (
+                recentProjects.map((p) => (
+                  <tr key={p.project_id} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 font-medium text-gray-900 flex items-center gap-2">
+                      {p.visibility && p.visibility !== "public" ? (
+                        <Lock size={16} className="text-gray-500" />
+                      ) : null}
+                      <span>{p.title}</span>
+                    </td>
+                    <td className="px-3 py-2">{p.batch_name}</td>
+                    <td className="px-3 py-2 capitalize">
+                      {p.status || "new"}
+                    </td>
+                    <td className="px-3 py-2">{p.guide_name || "—"}</td>
+                    <td className="px-3 py-2 text-right">
+                      <button
+                        className="px-2 py-1 text-[#155dfc] font-medium hover:underline"
+                        onClick={() => navigate(`/projects/${p.project_id}`)}
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
