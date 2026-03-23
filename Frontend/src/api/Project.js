@@ -8,7 +8,7 @@ class Project {
   }
 
   //Get Project By Department
-  static async getAllProjectsByDepartment(departmentId) {
+  static async getAllProjectsByDepartment() {
     const response = await axiosInstance.get("/projects?");
     return response.data;
   }
@@ -41,7 +41,7 @@ class Project {
   static async updateProject(projectId, projectData) {
     const response = await axiosInstance.put(
       `/projects/${projectId}`,
-      projectData
+      projectData,
     );
     return response.data;
   }
@@ -64,7 +64,7 @@ class Project {
       `/projects/${projectId}/assign-guide`,
       {
         guideId,
-      }
+      },
     );
     return response.data;
   }
@@ -79,7 +79,7 @@ class Project {
   static async updateProjectFull(projectId, projectData) {
     const response = await axiosInstance.put(
       `/projects/${projectId}/full`,
-      projectData
+      projectData,
     );
     return response.data;
   }
@@ -88,7 +88,7 @@ class Project {
   static async uploadReview(projectId, fileUrl) {
     const response = await axiosInstance.post(
       `/projects/${projectId}/reviews`,
-      { file_url: fileUrl }
+      { file_url: fileUrl },
     );
     return response.data;
   }
@@ -102,6 +102,38 @@ class Project {
   // Get student dashboard statistics
   static async getStudentStats() {
     const response = await axiosInstance.get(`/projects/my/stats`);
+    return response.data;
+  }
+
+  // Submit project for review (student)
+  static async submitProject(projectId) {
+    const response = await axiosInstance.post(`/projects/${projectId}/submit`);
+    return response.data;
+  }
+
+  // Approve project (mentor)
+  static async approveProject(projectId) {
+    const response = await axiosInstance.patch(
+      `/projects/${projectId}/approve`,
+    );
+    return response.data;
+  }
+
+  // Reject project (mentor)
+  static async rejectProject(projectId, feedback) {
+    const response = await axiosInstance.patch(
+      `/projects/${projectId}/reject`,
+      { feedback },
+    );
+    return response.data;
+  }
+
+  // Update project status (student, in-progress/completed)
+  static async updateProjectStatus(projectId, status) {
+    const response = await axiosInstance.patch(
+      `/projects/${projectId}/status`,
+      { status },
+    );
     return response.data;
   }
 }

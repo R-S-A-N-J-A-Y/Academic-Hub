@@ -1,3 +1,39 @@
+// Approve project (mentor, only from draft)
+const approveProject = async (projectId, userId) => {
+  const checkQuery = `SELECT status, guide_id FROM projects WHERE project_id = $1`;
+  const checkResult = await pool.query(checkQuery, [projectId]);
+  if (!checkResult.rows.length) throw new Error("Project not found");
+  const { status, guide_id } = checkResult.rows[0];
+  if (status !== "draft")
+    throw new Error("Only draft projects can be approved");
+  if (guide_id !== userId) throw new Error("Only assigned mentor can approve");
+  const updateQuery = `UPDATE projects SET status = 'in-progress', approved_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE project_id = $1 RETURNING *;`;
+  const result = await pool.query(updateQuery, [projectId]);
+  return result.rows[0];
+};
+
+// Reject project (mentor, only from draft)
+const rejectProject = async (projectId, userId, feedback) => {
+  const checkQuery = `SELECT status, guide_id FROM projects WHERE project_id = $1`;
+  const checkResult = await pool.query(checkQuery, [projectId]);
+  if (!checkResult.rows.length) throw new Error("Project not found");
+  const { status, guide_id } = checkResult.rows[0];
+  if (status !== "draft")
+    throw new Error("Only draft projects can be rejected");
+  if (guide_id !== userId) throw new Error("Only assigned mentor can reject");
+  const updateQuery = `UPDATE projects SET status = 'rejected', feedback = $2, updated_at = CURRENT_TIMESTAMP WHERE project_id = $1 RETURNING *;`;
+  const result = await pool.query(updateQuery, [projectId, feedback || null]);
+  return result.rows[0];
+};
+
+// Get all projects assigned to a mentor (by guide_id)
+const getProjectsByMentor = async (mentorId) => {
+  const query = `SELECT * FROM projects WHERE guide_id = $1 ORDER BY created_at DESC;`;
+  const result = await pool.query(query, [mentorId]);
+  return result.rows;
+};
+
+// Export new workflow functions
 const pool = require("../db/dbConfig");
 
 // Get all projects
@@ -35,7 +71,7 @@ const getAllProjectsByDepartment = async (dept_id) => {
   `;
   const result = await pool.query(query, [dept_id]);
   return result.rows;
-}
+};
 
 // Get projects created by or assigned to a user
 const getMyProjects = async (userId) => {
@@ -110,7 +146,7 @@ const getGuidedProjects = async (userId) => {
   return result.rows;
 };
 
-// Create project
+// Create project (always status = 'draft', must store guide_id)
 const createProject = async ({
   title,
   abstract,
@@ -124,9 +160,7 @@ const createProject = async ({
   hosted_link,
   visibility = "public",
 }) => {
-  // Determine status based on guide assignment
-  const status = guide_id ? "pending" : "new";
-
+  const status = "draft";
   const query = `
     INSERT INTO projects 
       (title, abstract, type, created_by, batch_id, dept_id, guide_id, status, objective, category, hosted_link, visibility, likes)
@@ -146,9 +180,8 @@ const createProject = async ({
     category ?? "mini",
     hosted_link ?? null,
     visibility,
-    0, // default likes
+    0,
   ];
-
   const result = await pool.query(query, values);
   return result.rows[0];
 };
@@ -170,7 +203,7 @@ const updateProject = async (projectId, { title, abstract }, userId) => {
   // Check status
   const statusResult = await pool.query(
     `SELECT status FROM projects WHERE project_id = $1`,
-    [projectId]
+    [projectId],
   );
   if (["approved", "in-progress"].includes(statusResult.rows[0].status)) {
     throw new Error("Cannot edit approved or in-progress projects");
@@ -407,7 +440,7 @@ const updateProjectFull = async (projectId, updateData, userId) => {
   // Check current status - only allow editing if not in final states
   const statusResult = await pool.query(
     `SELECT status FROM projects WHERE project_id = $1`,
-    [projectId]
+    [projectId],
   );
   const currentStatus = statusResult.rows[0].status;
 
@@ -441,11 +474,11 @@ const updateProjectFull = async (projectId, updateData, userId) => {
     typeof ispublished === "boolean"
       ? ispublished
       : ispublished === undefined
-      ? null
-      : Boolean(ispublished);
-  const normalizedPaperLink = paper_link === "" ? null : paper_link ?? null;
+        ? null
+        : Boolean(ispublished);
+  const normalizedPaperLink = paper_link === "" ? null : (paper_link ?? null);
   const normalizedConferenceName =
-    conference_name === "" ? null : conference_name ?? null;
+    conference_name === "" ? null : (conference_name ?? null);
   const normalizedConferenceYear =
     conference_year === "" ||
     conference_year === undefined ||
@@ -453,7 +486,7 @@ const updateProjectFull = async (projectId, updateData, userId) => {
       ? null
       : Number(conference_year);
   const normalizedConferenceStatus =
-    conference_status === "" ? null : conference_status ?? null;
+    conference_status === "" ? null : (conference_status ?? null);
 
   const updateQuery = `
     UPDATE projects 
@@ -493,7 +526,6 @@ const updateProjectFull = async (projectId, updateData, userId) => {
 
   return result.rows[0];
 };
-
 // Add project review
 const addProjectReview = async (projectId, fileUrl) => {
   // Get next review number
@@ -586,5 +618,8 @@ module.exports = {
   addProjectReview,
   likeProject,
   getStudentStats,
-  getAllProjectsByDepartment
+  getAllProjectsByDepartment,
+  approveProject,
+  rejectProject,
+  getProjectsByMentor,
 };

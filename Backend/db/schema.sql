@@ -5,7 +5,10 @@ CREATE TABLE IF NOT EXISTS projects (
     description TEXT,
     objectives TEXT,
     technologies TEXT,
-    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'in-progress', 'completed')),
+    status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'approved', 'in-progress', 'completed', 'rejected', 'pending')),
+    feedback TEXT,
+    submitted_at TIMESTAMP,
+    approved_at TIMESTAMP,
     created_by INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

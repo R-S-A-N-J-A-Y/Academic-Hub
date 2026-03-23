@@ -21,7 +21,7 @@ const ProjectDetail = () => {
       setProject(p);
     } catch (err) {
       setError(
-        err.response?.data?.message || "Failed to fetch project details"
+        err.response?.data?.message || "Failed to fetch project details",
       );
     } finally {
       setLoading(false);
@@ -37,7 +37,7 @@ const ProjectDetail = () => {
     return (
       project.created_by.auth_id === auth.auth_id ||
       project.team_members.some(
-        (m) => m.auth_id === auth.auth_id && m.role_in_team === "leader"
+        (m) => m.auth_id === auth.auth_id && m.role_in_team === "leader",
       )
     );
   };
@@ -61,7 +61,7 @@ const ProjectDetail = () => {
 
   const handleDelete = async () => {
     const ok = window.confirm(
-      "Are you sure you want to delete this project? This action cannot be undone."
+      "Are you sure you want to delete this project? This action cannot be undone.",
     );
     if (!ok) return false;
     try {
@@ -317,15 +317,80 @@ const ProjectDetail = () => {
               <span className="font-medium text-gray-700 text-lg">Status:</span>
               <span
                 className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${
-                  project.status === "pending"
-                    ? "bg-yellow-400"
-                    : project.status === "in-progress"
-                    ? "bg-blue-500"
-                    : "bg-green-500"
+                  project.status === "draft"
+                    ? "bg-gray-400"
+                    : project.status === "submitted"
+                      ? "bg-yellow-400"
+                      : project.status === "approved"
+                        ? "bg-green-600"
+                        : project.status === "in-progress"
+                          ? "bg-blue-500"
+                          : project.status === "completed"
+                            ? "bg-green-500"
+                            : project.status === "rejected"
+                              ? "bg-red-500"
+                              : "bg-gray-300"
                 }`}
               >
                 {project.status.replace("-", " ").toUpperCase()}
               </span>
+            </div>
+
+            {/* Feedback for rejected projects */}
+            {project.status === "rejected" && project.feedback && (
+              <div className="mb-4">
+                <span className="font-medium text-red-600">Feedback:</span>
+                <span className="ml-2 text-gray-800">{project.feedback}</span>
+              </div>
+            )}
+
+            {/* Workflow Action Buttons */}
+            <div className="flex gap-3 mb-4">
+              {/* Mentor: Approve/Reject (only for draft) */}
+              {auth?.isguide && project.status === "draft" && (
+                <>
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700"
+                    onClick={async () => {
+                      try {
+                        await Project.approveProject(project.project_id);
+                        window.alert("Project approved");
+                        fetchProjectDetails();
+                      } catch (err) {
+                        window.alert(
+                          err.response?.data?.message ||
+                            "Failed to approve project",
+                        );
+                      }
+                    }}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700"
+                    onClick={async () => {
+                      const feedback = prompt(
+                        "Enter feedback for rejection (optional):",
+                      );
+                      try {
+                        await Project.rejectProject(
+                          project.project_id,
+                          feedback,
+                        );
+                        window.alert("Project rejected");
+                        fetchProjectDetails();
+                      } catch (err) {
+                        window.alert(
+                          err.response?.data?.message ||
+                            "Failed to reject project",
+                        );
+                      }
+                    }}
+                  >
+                    Reject
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Other Fields */}
@@ -427,7 +492,6 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

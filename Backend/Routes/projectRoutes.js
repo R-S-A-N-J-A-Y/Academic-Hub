@@ -15,7 +15,7 @@ const {
   uploadProjectReview,
   likeProject,
   getStudentStats,
-  getAllProjectsByDepartment
+  getAllProjectsByDepartment,
 } = require("../Handlers/ProjectHandler");
 
 const route = express.Router();
@@ -58,6 +58,32 @@ route.put("/:projectId/full", updateProjectFull);
 
 // DELETE /projects/:projectId
 route.delete("/:projectId", deleteProject);
+
+// --- Project Workflow Endpoints ---
+// Student submits project for review
+route.post(
+  "/:projectId/submit",
+  require("../Middlewares/authMiddleware"),
+  require("../Handlers/ProjectHandler").submitProject,
+);
+// Mentor approves project
+route.patch(
+  "/:projectId/approve",
+  require("../Middlewares/authMiddleware"),
+  require("../Handlers/ProjectHandler").approveProject,
+);
+// Mentor rejects project
+route.patch(
+  "/:projectId/reject",
+  require("../Middlewares/authMiddleware"),
+  require("../Handlers/ProjectHandler").rejectProject,
+);
+// Student updates project status (in-progress, completed)
+route.patch(
+  "/:projectId/status",
+  require("../Middlewares/authMiddleware"),
+  require("../Handlers/ProjectHandler").updateProjectStatus,
+);
 
 // POST /projects/:projectId/reviews
 route.post("/:projectId/reviews", uploadProjectReview);

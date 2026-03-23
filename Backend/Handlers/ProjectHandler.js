@@ -1,3 +1,94 @@
+// --- Project Workflow Handlers ---
+// Student submits project for review
+const submitProject = async (req, res) => {
+  try {
+    const { user_id, role } = req.user;
+    const { projectId } = req.params;
+    if (role !== "student") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only students can submit projects" });
+    }
+    const project = await projectController.submitProject(projectId, user_id);
+    res.status(200).json({
+      success: true,
+      data: project,
+      message: "Project submitted for review",
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Mentor approves project
+const approveProject = async (req, res) => {
+  try {
+    const { user_id, isguide } = req.user;
+    const { projectId } = req.params;
+    if (!isguide) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only mentors can approve projects" });
+    }
+    const project = await projectController.approveProject(projectId, user_id);
+    res
+      .status(200)
+      .json({ success: true, data: project, message: "Project approved" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Mentor rejects project
+const rejectProject = async (req, res) => {
+  try {
+    const { user_id, isguide } = req.user;
+    const { projectId } = req.params;
+    const { feedback } = req.body;
+    if (!isguide) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Only mentors can reject projects" });
+    }
+    const project = await projectController.rejectProject(
+      projectId,
+      user_id,
+      feedback,
+    );
+    res
+      .status(200)
+      .json({ success: true, data: project, message: "Project rejected" });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// Student updates project status to in-progress/completed (with validation)
+const updateProjectStatus = async (req, res) => {
+  try {
+    const { user_id, role } = req.user;
+    const { projectId } = req.params;
+    const { status } = req.body;
+    if (role !== "student") {
+      return res.status(403).json({
+        success: false,
+        message: "Only students can update project status",
+      });
+    }
+    const project = await projectController.updateProjectStatus(
+      projectId,
+      status,
+      user_id,
+    );
+    res.status(200).json({
+      success: true,
+      data: project,
+      message: `Project status updated to ${status}`,
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
 const projectController = require("../Controllers/projectController");
 const teamController = require("../Controllers/teamController");
 const guideController = require("../Controllers/guideController");
@@ -25,7 +116,8 @@ const getAllProjects = async (req, res) => {
 const getAllProjectsByDepartment = async (req, res) => {
   try {
     const { dept_id } = req.params;
-    const projects = await projectController.getAllProjectsByDepartment(dept_id);
+    const projects =
+      await projectController.getAllProjectsByDepartment(dept_id);
     res.status(200).json({
       success: true,
       data: projects,
@@ -149,7 +241,7 @@ const createProject = async (req, res) => {
       if (studentInfo && teamMembers && teamMembers.length) {
         validMembers = await teamController.validateTeamMembers(
           teamMembers,
-          user_id
+          user_id,
         );
       }
     }
@@ -178,7 +270,7 @@ const createProject = async (req, res) => {
         project.project_id,
         teamName,
         user_id,
-        guideId ?? null
+        guideId ?? null,
       );
 
       // Add team members
@@ -187,7 +279,7 @@ const createProject = async (req, res) => {
           await teamController.addTeamMember(
             team.team_id,
             member.user_id,
-            "member"
+            "member",
           );
         }
       }
@@ -195,7 +287,7 @@ const createProject = async (req, res) => {
 
     // Get complete project details
     const projectDetails = await projectController.getProjectDetails(
-      project.project_id
+      project.project_id,
     );
     const teamMembersList =
       projectType === "team"
@@ -233,7 +325,7 @@ const updateProject = async (req, res) => {
         title,
         abstract,
       },
-      user_id
+      user_id,
     );
 
     res.status(200).json({
@@ -351,7 +443,7 @@ const deleteProject = async (req, res) => {
 
     const deletedProject = await projectController.deleteProject(
       projectId,
-      user_id
+      user_id,
     );
 
     if (!deletedProject) {
@@ -393,7 +485,7 @@ const getFullProjectDetails = async (req, res) => {
     // Get project details
     const project = await projectController.getFullProjectDetails(
       projectId,
-      user_id
+      user_id,
     );
     if (!project) {
       return res.status(404).json({
@@ -489,20 +581,20 @@ const updateProjectFull = async (req, res) => {
     } = req.body;
 
     // If a student is trying to change status and the project already has a guide, block it
-    if (role === "student" && typeof status !== "undefined") {
-      const current = await projectController.getFullProjectDetails(
-        projectId,
-        user_id
-      );
+    // if (role === "student" && typeof status !== "undefined") {
+    //   const current = await projectController.getFullProjectDetails(
+    //     projectId,
+    //     user_id,
+    //   );
 
-      if (current && current.guide_id) {
-        return res.status(403).json({
-          success: false,
-          message:
-            "You cannot change the status after a guide has been assigned to this project",
-        });
-      }
-    }
+    //   if (current && current.guide_id) {
+    //     return res.status(403).json({
+    //       success: false,
+    //       message:
+    //         "You cannot change the status after a guide has been assigned to this project",
+    //     });
+    //   }
+    // }
 
     const updatedProject = await projectController.updateProjectFull(
       projectId,
@@ -520,7 +612,7 @@ const updateProjectFull = async (req, res) => {
         conference_year,
         conference_status,
       },
-      user_id
+      user_id,
     );
 
     res.status(200).json({
@@ -552,7 +644,7 @@ const uploadProjectReview = async (req, res) => {
 
     const review = await projectController.addProjectReview(
       projectId,
-      file_url
+      file_url,
     );
 
     res.status(201).json({
@@ -632,4 +724,8 @@ module.exports = {
   uploadProjectReview,
   likeProject,
   getStudentStats,
+  submitProject,
+  approveProject,
+  rejectProject,
+  updateProjectStatus,
 };

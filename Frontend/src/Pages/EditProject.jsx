@@ -52,10 +52,9 @@ const EditProject = () => {
         conference_year: p.conference_year ?? "",
         conference_status: p.conference_status || "participation",
       });
-
     } catch (err) {
       setError(
-        err.response?.data?.message || "Failed to fetch project details"
+        err.response?.data?.message || "Failed to fetch project details",
       );
     } finally {
       setLoading(false);
@@ -166,10 +165,15 @@ const EditProject = () => {
                 type="text"
                 value={form.title}
                 onChange={(e) => handleChange("title", e.target.value)}
-                className="w-full rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition"
-                required
+                // className="w-full rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition"
+                readOnly
+                className="w-full rounded-lg bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
               />
             </div>
+          </div>
+
+          {/* Status & category */}
+          <div className="grid gap-3 md:grid-cols-4">
             <div>
               <label className="block text-md font-semibold tracking-wide uppercase text-gray-500 mb-2">
                 Type
@@ -181,10 +185,6 @@ const EditProject = () => {
                 className="w-full rounded-lg bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
               />
             </div>
-          </div>
-
-          {/* Status & category */}
-          <div className="grid gap-5 md:grid-cols-3">
             <div>
               <label className="block text-md font-semibold tracking-wide uppercase text-gray-500 mb-2">
                 Status
@@ -219,8 +219,10 @@ const EditProject = () => {
               </label>
               <select
                 value={form.category}
-                onChange={(e) => handleChange("category", e.target.value)}
-                className="w-full rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 px-3 py-2.5 text-sm text-gray-900 outline-none transition"
+                // onChange={(e) => handleChange("category", e.target.value)}
+                readOnly
+                disabled
+                className="w-full rounded-lg bg-gray-100 border border-gray-200 px-3 py-2.5 text-sm text-gray-700 cursor-not-allowed"
               >
                 <option value="mini">Mini</option>
                 <option value="full">Full</option>
@@ -314,7 +316,9 @@ const EditProject = () => {
                 <input
                   type="checkbox"
                   checked={!!form.ispublished}
-                  onChange={(e) => handleChange("ispublished", e.target.checked)}
+                  onChange={(e) =>
+                    handleChange("ispublished", e.target.checked)
+                  }
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-gray-700">Published</span>
@@ -360,7 +364,7 @@ const EditProject = () => {
                     onChange={(e) =>
                       handleChange(
                         "conference_year",
-                        e.target.value === "" ? "" : Number(e.target.value)
+                        e.target.value === "" ? "" : Number(e.target.value),
                       )
                     }
                     className="w-full rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 px-3 py-2.5 text-sm text-gray-900 outline-none transition"
@@ -468,15 +472,11 @@ const EditProject = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Created</span>
-                <span>
-                  {new Date(project.created_at).toLocaleDateString()}
-                </span>
+                <span>{new Date(project.created_at).toLocaleDateString()}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">Updated</span>
-                <span>
-                  {new Date(project.updated_at).toLocaleDateString()}
-                </span>
+                <span>{new Date(project.updated_at).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
@@ -501,5 +501,3 @@ const EditProject = () => {
 };
 
 export default EditProject;
-
-

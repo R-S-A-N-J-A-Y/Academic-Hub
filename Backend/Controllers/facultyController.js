@@ -89,7 +89,7 @@ const updateIsGuide = async (ids, isGuide) => {
 
 const getFacultyDetails = async (userId) => {
   const res = await pool.query(
-    "SELECT dept_id, designation FROM faculty WHERE user_id = $1",
+    "SELECT dept_id, designation, isguide FROM faculty WHERE user_id = $1",
     [userId],
   );
   return res.rows.length > 0 ? res.rows[0] : {};

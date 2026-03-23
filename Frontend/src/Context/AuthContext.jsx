@@ -5,11 +5,12 @@ const defaultAuth = {
   isLogged: false,
   id: null,
   role: null,
+  isguide: false,
   name: null,
   email: null,
-  dept_id: null,    
-  designation: "",  
-  batch_id: null,   
+  dept_id: null,
+  designation: "",
+  batch_id: null,
   enrollment_no: "",
 };
 
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   // Store login data in localStorage
   const storeAuthData = (data) => {
+    console.log("Storing auth data:", data);
     localStorage.setItem("authData", JSON.stringify(data));
     setAuth({ ...data, isLogged: true });
   };

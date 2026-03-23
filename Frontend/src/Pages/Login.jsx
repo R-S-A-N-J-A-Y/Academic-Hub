@@ -32,11 +32,12 @@ const Login = () => {
       if (res.status === 200) {
         const user = res.data.user;
 
-        console.log(user)
+        console.log(user);
 
         const userData = {
           id: user.id,
           role: user.role,
+          isguide: user.isguide || false,
           name: user.name,
           email: user.email,
           dept_id: user.dept_id || null, // faculty only
