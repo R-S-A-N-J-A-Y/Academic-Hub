@@ -13,8 +13,10 @@ const Header = () => {
   const navItems = [
     { name: "Dashboard", path: "/" },
     { name: "Mentors", path: "/mentors" },
-    ...(auth?.role === "faculty" || auth?.role === "coordinator" ? [{ name: "Projects", path: "/projects" }] : []),
-    { name: "Notifications", path: "/notifications" },
+    ...(auth?.role === "faculty" || auth?.role === "coordinator"
+      ? [{ name: "Projects", path: "/projects" }]
+      : []),
+    // { name: "Notifications", path: "/notifications" },
     { name: "Profile", path: "/profile" },
   ];
 
@@ -79,7 +81,9 @@ const Header = () => {
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`px-5 py-3 text-sm font-medium transition-colors ${
-                    isActive ? "text-blue-600 bg-blue-50" : "text-gray-800 hover:bg-gray-50"
+                    isActive
+                      ? "text-blue-600 bg-blue-50"
+                      : "text-gray-800 hover:bg-gray-50"
                   }`}
                 >
                   {item.name}

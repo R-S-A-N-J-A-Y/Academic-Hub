@@ -56,7 +56,7 @@ const Profile = () => {
     try {
       const response = await User.changePassword(
         passwordData.currentPassword,
-        passwordData.newPassword
+        passwordData.newPassword,
       );
 
       if (response.success) {
@@ -70,7 +70,7 @@ const Profile = () => {
       }
     } catch (err) {
       setPasswordError(
-        err.response?.data?.message || "Failed to change password"
+        err.response?.data?.message || "Failed to change password",
       );
     }
   };
@@ -121,7 +121,8 @@ const Profile = () => {
     );
   }
 
-  const isFaculty = profileData.role === "faculty" || profileData.role === "coordinator"; 
+  const isFaculty =
+    profileData.role === "faculty" || profileData.role === "coordinator";
   const isStudent = profileData.role === "student";
 
   return (
@@ -350,7 +351,7 @@ const Profile = () => {
                       Department
                     </label>
                     <p className="text-lg font-semibold text-gray-900">
-                      {profileData.department}
+                      {profileData.department.toUpperCase()}
                     </p>
                   </div>
                 </div>
@@ -364,7 +365,9 @@ const Profile = () => {
                       Designation
                     </label>
                     <p className="text-lg font-semibold text-gray-900">
-                      {profileData.designation}
+                      {profileData.designation &&
+                        profileData.designation[0].toUpperCase() +
+                          profileData.designation.slice(1)}
                     </p>
                   </div>
                 </div>
